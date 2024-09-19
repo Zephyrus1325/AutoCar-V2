@@ -4,16 +4,21 @@
 #include <ESPAsyncWebServer.h>
 #include <webPage.h>
 #include <ArduinoJson.h>
-
+#include "esp_wpa2.h"
+#include "comms.h"
 
 AsyncWebServer server(80); // Declara um servidor e um websocket
 AsyncWebSocket ws("/ws");
+
+// Timers
+timer webSocketTimer{0, 100, true, true, true};
 
 // Credenciais de Rede 
 const char* ssid = "MarcoFilho";
 const char* password = "MarcoFilho12";
 
 // Variáveis do carrinho, estão de exemplo aqui
+CarData car;
 int mode = 0;
 int throttleLeft = 0;
 int throttleRight = 0;
@@ -21,6 +26,7 @@ float speedLeft = 0;
 float speedRight = 0;
 float ultrassound[8] = {0,0,0,0,0,0,0,0};
 float motor[4] = {0,0,0,0};
+
 
 // O que retornar em caso de não encontrar o servidor
 void notFound(AsyncWebServerRequest *request) {
@@ -171,6 +177,7 @@ JsonDocument carData(){
 
 void setup() {
     Serial.begin(115200);
+    Serial2.begin(115200, SERIAL_8N1, 16, 17);
     WiFi.mode(WIFI_STA);    // Inicia o ESP como um STATION (cliente de uma rede)
     WiFi.begin(ssid, password); // Inicia o WIFI com as credenciais de rede
     // Se a conexão falhar, desista!
@@ -194,10 +201,15 @@ void setup() {
     server.onNotFound(notFound);
     server.begin();
 }
-
+CarData t;
 void loop() {
-    delay(200); // TODO: Utilizar Struct de Timer para rodar este trecho
-    char data[1400]; // Cria um buffer de caracteres
-    size_t len = serializeJson(carData(), data); // Usa o buffer para escrever o JSON
-    ws.textAll(data, len);  // Envia esse buffer no WS para todos os clientes
+    // Checar se há mensagem de update nova
+    receiveData(&t);
+    // A cada x milisegundos, definido pelo timer, envie uma mensagem para os clientes
+    if(webSocketTimer.CheckTime()){
+        char data[1400]; // Cria um buffer de caracteres
+        size_t len = serializeJson(carData(), data); // Usa o buffer para escrever o JSON
+        ws.textAll(data, len);  // Envia esse buffer no WS para todos os clientes
+    }
+    
 }

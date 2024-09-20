@@ -6,8 +6,7 @@
 #include <ArduinoJson.h>
 #include "esp_wpa2.h"
 #include "comms.h"
-
-#define FLOAT_MULTIPLIER 1.0f
+#include "defines.h"
 
 AsyncWebServer server(80); // Declara um servidor e um websocket
 AsyncWebSocket ws("/ws");
@@ -16,8 +15,8 @@ AsyncWebSocket ws("/ws");
 timer webSocketTimer{0, 100, true, true, true};
 
 // Credenciais de Rede 
-const char* ssid = "MarcoFilho";
-const char* password = "MarcoFilho12";
+const char* ssid = "LabMaker_Teste";
+const char* password = "LabMaker";
 
 // Variáveis do carrinho, estão de exemplo aqui
 CarData car;
@@ -56,18 +55,17 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
         const char *toChange = json["toChange"];
         const char *changeTo = json["changeTo"];
         String value = changeTo;
-
         // Muda as variaveis de acordo com o que precisa ser alterado
         // TODO: Adicionar comunicação Serial com o Arduino ao inves de variaveis globais do ESP
         if (strcmp(toChange, "motorMode") == 0){
             mode = (value == "manual" ? 0 : 1);
-            Serial.println("motorMode:" + value);
+            sendCommand(COMMAND_MOTOR_SETMOTORMODE, (value == "manual" ? 0 : 1));
         } else if (strcmp(toChange, "leftSetpoint") == 0){
             speedLeft = value.toFloat();
-            Serial.println("leftSetpoint" + value);
+            sendCommand(COMMAND_MOTOR_LEFT_SETSPEED, value.toInt());
         } else if (strcmp(toChange, "leftThrottle") == 0){
             throttleLeft = value.toFloat();
-            Serial.println("leftThrottle" + value);
+            sendCommand(COMMAND_MOTOR_LEFT_SETTHROTTLE, value.toInt());
         } else if (strcmp(toChange, "leftKp") == 0){
 
         } else if (strcmp(toChange, "leftKi") == 0){
@@ -76,10 +74,10 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
 
         } else if (strcmp(toChange, "rightSetpoint") == 0){
             speedRight = value.toFloat();
-            Serial.println("rightSetpoint" + value);
+            sendCommand(COMMAND_MOTOR_RIGHT_SETSPEED, value.toInt());
         } else if (strcmp(toChange, "rightThrottle") == 0){
             throttleRight = value.toFloat();
-            Serial.println("rightThrottle" + value);
+            sendCommand(COMMAND_MOTOR_RIGHT_SETTHROTTLE, value.toInt());
         } else if (strcmp(toChange, "rightKp") == 0){
 
         } else if (strcmp(toChange, "rightKi") == 0){
@@ -120,16 +118,16 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
 // Cria um JSON com todos os dados do carro
 JsonDocument carData(){
     JsonDocument data;
-    data["battery"]["voltage"] = (float) car.battery_voltage / FLOAT_MULTIPLIER;
+    data["battery"]["voltage"] = (float)analogRead(32)/73.5f;
     data["battery"]["percentage"] = car.battery_percentage;
-    data["ultrassound"]["front"] = car.ultrassound_reading_front >> 8;
-    data["ultrassound"]["front_left"] = car.ultrassound_reading_front_left >> 8;
-    data["ultrassound"]["front_right"] = car.ultrassound_reading_front_right >> 8;
-    data["ultrassound"]["left"] = car.ultrassound_reading_left >> 8;
-    data["ultrassound"]["right"] = car.ultrassound_reading_right >> 8;
-    data["ultrassound"]["back"] = car.ultrassound_reading_back >> 8;
-    data["ultrassound"]["back_left"] = car.ultrassound_reading_back_left >> 8;
-    data["ultrassound"]["back_right"] = car.ultrassound_reading_back_right >> 8;
+    data["ultrassound"]["front"] = car.ultrassound_reading_front;
+    data["ultrassound"]["front_left"] = car.ultrassound_reading_front_left;
+    data["ultrassound"]["front_right"] = car.ultrassound_reading_front_right;
+    data["ultrassound"]["left"] = car.ultrassound_reading_left;
+    data["ultrassound"]["right"] = car.ultrassound_reading_right;
+    data["ultrassound"]["back"] = car.ultrassound_reading_back;
+    data["ultrassound"]["back_left"] = car.ultrassound_reading_back_left;
+    data["ultrassound"]["back_right"] = car.ultrassound_reading_back_right;
     data["motor"]["mode"] = car.motor_mode;
     data["motor"]["left"]["setpoint"] = (float) car.motor_left_setpoint / FLOAT_MULTIPLIER;
     data["motor"]["left"]["speed"] = (float) car.motor_left_speed / FLOAT_MULTIPLIER;
@@ -202,6 +200,7 @@ void setup() {
 
     server.onNotFound(notFound);
     server.begin();
+    pinMode(32, INPUT);
 }
 void loop() {
     // Checar se há mensagem de update nova
@@ -212,5 +211,5 @@ void loop() {
         size_t len = serializeJson(carData(), data); // Usa o buffer para escrever o JSON
         ws.textAll(data, len);  // Envia esse buffer no WS para todos os clientes
     }
-    
+
 }

@@ -159,6 +159,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 		</th>
 		<th>
 			<div class="ultrassound_readings">
+				<p style="margin:0px;" id="battery_voltage_value">Tensao Bateria: 0.0 V </p>
 				<p style="margin:0px;" id="ultrassound_front_value"> Sensor Frente: 0.0 cm </p>
 				<p style="margin:0px;" id="ultrassound_front_left_value"> Sensor Frente-Esquerda: 0.0 cm </p>
 				<p style="margin:0px;" id="ultrassound_front_right_value"> Sensor Frente-Direita: 0.0 cm </p>
@@ -208,7 +209,6 @@ const char index_html[] PROGMEM = R"rawliteral(
 	function onMessage(event) {
 		var data = JSON.parse(event.data);
 		updateIndicators(data);
-        console.log(data);
 	}
 	
 
@@ -323,6 +323,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 		motorR_slider_throttle.value = data.motor.right.throttle;
 		
 		// Atualizar ultrassons
+		document.getElementById("battery_voltage_value").innerText =  "Tensao Bateria: " + data.battery.voltage + " V";
 		document.getElementById("ultrassound_front_left_value").innerText =  "Sensor Frente Esquerda: " + data.ultrassound.front_left + " cm";
 		document.getElementById("ultrassound_front_value").innerText = 		 "Sensor Frente: " + data.ultrassound.front + " cm";
 		document.getElementById("ultrassound_front_right_value").innerText = "Sensor Frente Direita: " + data.ultrassound.front_right + " cm";

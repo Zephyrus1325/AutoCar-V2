@@ -68,6 +68,7 @@ struct CarData{
     int16_t navigation_home_x;
     int16_t navigation_home_y;
     int16_t navigation_home_z;
+
 };
 
 // Função de receber dados do Serial
@@ -76,6 +77,29 @@ void receiveData(CarData* data){
     // Ler a variavel caso tenha sido enviada algum dado no serial
     // E escrever esses dados no Struct CarData
     byte packetStatus = StreamSend::receiveObject(Serial2, data, sizeof(*data));
+    if(packetStatus == GOOD_PACKET){
+        Serial.print("Received Healty Packet: ");
+        Serial.println(sizeof(*data));
+    } else if(packetStatus == BAD_PACKET){
+        Serial.println("Bad Packet: ");
+        Serial.println(sizeof(*data));
+    }
+    
+    //Serial.print(data->ultrassound_reading_front);
+    //Serial.print("|");
+    //Serial.print(data->ultrassound_reading_front_left);
+    //Serial.print("|");
+    //Serial.print(data->ultrassound_reading_front_right);
+    //Serial.print("|");
+    //Serial.print(data->ultrassound_reading_left);
+    //Serial.print("|");
+    //Serial.print(data->ultrassound_reading_right);
+    //Serial.print("|");
+    //Serial.print(data->ultrassound_reading_back);
+    //Serial.print("|");
+    //Serial.print(data->ultrassound_reading_back_left);
+    //Serial.print("|");
+    //Serial.println(data->ultrassound_reading_back_right);
 }
 
 #endif

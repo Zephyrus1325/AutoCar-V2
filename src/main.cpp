@@ -7,6 +7,8 @@
 #include "esp_wpa2.h"
 #include "comms.h"
 
+#define FLOAT_MULTIPLIER 1.0f
+
 AsyncWebServer server(80); // Declara um servidor e um websocket
 AsyncWebSocket ws("/ws");
 
@@ -118,60 +120,60 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
 // Cria um JSON com todos os dados do carro
 JsonDocument carData(){
     JsonDocument data;
-    data["battery"]["voltage"] = 11.1f;
-    data["battery"]["percentage"] = 100;
-    data["ultrassound"]["front"] = (float)random(1000)/100.0f;
-    data["ultrassound"]["front_left"] = (float)random(1000)/100.0f;
-    data["ultrassound"]["front_right"] = (float)random(1000)/100.0f;
-    data["ultrassound"]["left"] = (float)random(1000)/100.0f;
-    data["ultrassound"]["right"] = (float)random(1000)/100.0f;
-    data["ultrassound"]["back"] = (float)random(1000)/100.0f;
-    data["ultrassound"]["back_left"] = (float)random(1000)/100.0f;
-    data["ultrassound"]["back_right"] = (float)random(1000)/100.0f;
-    data["motor"]["mode"] = mode == 0 ? "auto" : "manual";
-    data["motor"]["left"]["setpoint"] = 16.0f;
-    data["motor"]["left"]["speed"] = speedLeft;
-    data["motor"]["left"]["throttle"] = throttleLeft;
-    data["motor"]["left"]["kp"] = 1.6f;
-    data["motor"]["left"]["ki"] = 1.7f;
-    data["motor"]["left"]["kd"] = 1.8f;
-    data["motor"]["right"]["setpoint"] = 16.0f;
-    data["motor"]["right"]["speed"] = speedRight;
-    data["motor"]["right"]["throttle"] = throttleRight;
-    data["motor"]["right"]["kp"] = 1.6f;
-    data["motor"]["right"]["ki"] = 1.7f;
-    data["motor"]["right"]["kd"] = 1.8f;
-    data["IMU"]["gyro"]["raw"]["x"] = 10;
-    data["IMU"]["gyro"]["raw"]["y"] = 10;
-    data["IMU"]["gyro"]["raw"]["z"] = 10;
-    data["IMU"]["gyro"]["treated"]["x"] = 10;
-    data["IMU"]["gyro"]["treated"]["y"] = 10;
-    data["IMU"]["gyro"]["treated"]["z"] = 10;
-    data["IMU"]["acc"]["raw"]["x"] = 10;
-    data["IMU"]["acc"]["raw"]["y"] = 10;
-    data["IMU"]["acc"]["raw"]["z"] = 10;
-    data["IMU"]["acc"]["treated"]["x"] = 10;
-    data["IMU"]["acc"]["treated"]["y"] = 10;
-    data["IMU"]["acc"]["treated"]["z"] = 10;
-    data["IMU"]["mag"]["raw"]["x"] = 10;
-    data["IMU"]["mag"]["raw"]["y"] = 10;
-    data["IMU"]["mag"]["raw"]["z"] = 10;
-    data["IMU"]["mag"]["treated"]["x"] = 10;
-    data["IMU"]["mag"]["treated"]["y"] = 10;
-    data["IMU"]["mag"]["treated"]["z"] = 10;
-    data["navigation"]["mode"] = "manual";
-    data["navigation"]["position"]["x"] = 0;
-    data["navigation"]["position"]["y"] = 0;
-    data["navigation"]["position"]["z"] = 0;
-    data["navigation"]["position"]["pitch"] = 0;
-    data["navigation"]["position"]["roll"] = 0;
-    data["navigation"]["position"]["heading"] = 0;
-    data["navigation"]["destination"]["x"] = 0;
-    data["navigation"]["destination"]["y"] = 0;
-    data["navigation"]["destination"]["z"] = 0;
-    data["navigation"]["home"]["x"] = 0;
-    data["navigation"]["home"]["y"] = 0;
-    data["navigation"]["home"]["z"] = 0;
+    data["battery"]["voltage"] = (float) car.battery_voltage / FLOAT_MULTIPLIER;
+    data["battery"]["percentage"] = car.battery_percentage;
+    data["ultrassound"]["front"] = car.ultrassound_reading_front >> 8;
+    data["ultrassound"]["front_left"] = car.ultrassound_reading_front_left >> 8;
+    data["ultrassound"]["front_right"] = car.ultrassound_reading_front_right >> 8;
+    data["ultrassound"]["left"] = car.ultrassound_reading_left >> 8;
+    data["ultrassound"]["right"] = car.ultrassound_reading_right >> 8;
+    data["ultrassound"]["back"] = car.ultrassound_reading_back >> 8;
+    data["ultrassound"]["back_left"] = car.ultrassound_reading_back_left >> 8;
+    data["ultrassound"]["back_right"] = car.ultrassound_reading_back_right >> 8;
+    data["motor"]["mode"] = car.motor_mode;
+    data["motor"]["left"]["setpoint"] = (float) car.motor_left_setpoint / FLOAT_MULTIPLIER;
+    data["motor"]["left"]["speed"] = (float) car.motor_left_speed / FLOAT_MULTIPLIER;
+    data["motor"]["left"]["throttle"] = car.motor_left_throttle;
+    data["motor"]["left"]["kp"] = (float) car.motor_left_kp / FLOAT_MULTIPLIER;
+    data["motor"]["left"]["ki"] = (float) car.motor_left_ki / FLOAT_MULTIPLIER;
+    data["motor"]["left"]["kd"] = (float) car.motor_left_kd / FLOAT_MULTIPLIER;
+    data["motor"]["right"]["setpoint"] = (float) car.motor_right_setpoint / FLOAT_MULTIPLIER;
+    data["motor"]["right"]["speed"] = (float) car.motor_right_speed / FLOAT_MULTIPLIER;
+    data["motor"]["right"]["throttle"] = car.motor_right_throttle;
+    data["motor"]["right"]["kp"] = (float) car.motor_right_kp / FLOAT_MULTIPLIER;
+    data["motor"]["right"]["ki"] = (float) car.motor_right_ki / FLOAT_MULTIPLIER;
+    data["motor"]["right"]["kd"] = (float) car.motor_right_kd / FLOAT_MULTIPLIER;
+    data["IMU"]["gyro"]["raw"]["x"] = car.gyro_raw_x;
+    data["IMU"]["gyro"]["raw"]["y"] = car.gyro_raw_y;
+    data["IMU"]["gyro"]["raw"]["z"] = car.gyro_raw_z;
+    data["IMU"]["gyro"]["treated"]["x"] = (float) car.gyro_treated_x / FLOAT_MULTIPLIER;
+    data["IMU"]["gyro"]["treated"]["y"] = (float) car.gyro_treated_y / FLOAT_MULTIPLIER;
+    data["IMU"]["gyro"]["treated"]["z"] = (float) car.gyro_treated_z / FLOAT_MULTIPLIER;
+    data["IMU"]["acc"]["raw"]["x"] = car.acc_raw_x;
+    data["IMU"]["acc"]["raw"]["y"] = car.acc_raw_y;
+    data["IMU"]["acc"]["raw"]["z"] = car.acc_raw_z;
+    data["IMU"]["acc"]["treated"]["x"] = (float) car.acc_treated_x / FLOAT_MULTIPLIER;
+    data["IMU"]["acc"]["treated"]["y"] = (float) car.acc_treated_y / FLOAT_MULTIPLIER;
+    data["IMU"]["acc"]["treated"]["z"] = (float) car.acc_treated_z / FLOAT_MULTIPLIER;
+    data["IMU"]["mag"]["raw"]["x"] = car.mag_raw_x;
+    data["IMU"]["mag"]["raw"]["y"] = car.mag_raw_y;
+    data["IMU"]["mag"]["raw"]["z"] = car.mag_raw_z;
+    data["IMU"]["mag"]["treated"]["x"] = (float) car.mag_treated_x / FLOAT_MULTIPLIER;
+    data["IMU"]["mag"]["treated"]["y"] = (float) car.mag_treated_y / FLOAT_MULTIPLIER;
+    data["IMU"]["mag"]["treated"]["z"] = (float) car.mag_treated_z / FLOAT_MULTIPLIER;
+    data["navigation"]["mode"] = car.navigation_mode;
+    data["navigation"]["position"]["x"] = car.navigation_position_x;
+    data["navigation"]["position"]["y"] = car.navigation_position_y;
+    data["navigation"]["position"]["z"] = car.navigation_position_z;
+    data["navigation"]["position"]["pitch"] =  (float) car.navigation_position_pitch / FLOAT_MULTIPLIER;
+    data["navigation"]["position"]["roll"] =  (float) car.navigation_position_roll / FLOAT_MULTIPLIER;
+    data["navigation"]["position"]["heading"] =  (float) car.navigation_position_heading / FLOAT_MULTIPLIER;
+    data["navigation"]["destination"]["x"] = car.navigation_destination_x;
+    data["navigation"]["destination"]["y"] = car.navigation_destination_y;
+    data["navigation"]["destination"]["z"] = car.navigation_destination_z;
+    data["navigation"]["home"]["x"] = car.navigation_home_x;
+    data["navigation"]["home"]["y"] = car.navigation_home_y;
+    data["navigation"]["home"]["z"] = car.navigation_home_z;
     return data;
 }
 
@@ -201,10 +203,9 @@ void setup() {
     server.onNotFound(notFound);
     server.begin();
 }
-CarData t;
 void loop() {
     // Checar se há mensagem de update nova
-    receiveData(&t);
+    receiveData(&car);
     // A cada x milisegundos, definido pelo timer, envie uma mensagem para os clientes
     if(webSocketTimer.CheckTime()){
         char data[1400]; // Cria um buffer de caracteres

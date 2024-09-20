@@ -208,6 +208,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 	function onMessage(event) {
 		var data = JSON.parse(event.data);
 		updateIndicators(data);
+        console.log(data);
 	}
 	
 

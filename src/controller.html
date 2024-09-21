@@ -5,7 +5,7 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <style>
 div {
-	
+	border: solid black 1px;
 }
 
 .indicators {
@@ -67,9 +67,68 @@ div {
 		
 	</div>
 	<div class="indicator">
-	
+		<div style="text-align: center;">
+			<p style="font-size: 32px; margin:auto; margin-top:20px; width: 90%;">Right Motor</p>
+		</div>
+		<div style="display: flex; text-align:center; height: 10%;">
+			<div style="width:50%; margin: auto; border: solid black 1px;">
+				<p style="margin:0px;">Setpoint:</p>
+				<p style="margin:0px;">10.0 cm/s</p>
+			</div>
+			<div style="width:50%; margin: auto; border: solid black 1px;">
+				<p style="margin:0px;">Throttle:</p>
+				<p style="margin:0px;">100%</p>
+			</div>
+		</div>
+		<div>
+			<div style="margin:auto; width: 80%;">
+				<label>Setpoint</label>
+				<input type="text" style="width: 40px; text-align: center;"> cm/s
+				<label>Throttle</label>
+				<input type="text" style="width: 40px; text-align: center; margin-left: 1.5px;"> %  
+			</div>
+			<div style="margin:auto; width: 50%;">
+				<label>Kp</label>
+				<input type="text" style="width: 40px; text-align: center; margin-left: 6.5px;">
+				<label>Ki	</label>
+				<input type="text" style="width: 40px; text-align: center; margin-left: 10px;">
+				<label>Kd</label>
+				<input type="text" style="width: 40px; text-align: center; margin-left: 6.5px;"> 
+				<button style="width: 100%;">send PID</button>
+			</div>
+			<div style="text-align:center">
+				<p style="margin:0px">Kp: 0.00</p>
+				<p style="margin:0px">Ki: 0.00</p>
+				<p style="margin:0px">Kd: 0.00</p>
+			</div>
+		</div>
+		<div  style="display: flex;">
+			<button style="width: 45%; height: 50px; margin: auto;">CLOSED LOOP</button>
+			<button style="width: 45%; height: 50px; margin: auto;">OPEN LOOP</button>
+		</div>
+		
 	</div>
 	<div class="indicator">
+		<div style="text-align: center;">
+			<p style="font-size: 32px; margin:auto; margin-top:20px; width: 90%;">Ultrassounds</p>
+		</div>
+		<div>
+			<p style="margin:0px; margin-left: 5px;">Front: 15 cm</p>
+			<p style="margin:0px; margin-left: 5px;">Front Left: 10cm</p>
+			<p style="margin:0px; margin-left: 5px;">Front Right: 50cm</p>
+			<p style="margin:0px; margin-left: 5px;">Left: 40 cm</p>
+			<p style="margin:0px; margin-left: 5px;">Right: 30 cm</p>
+			<p style="margin:0px; margin-left: 5px;">Back: 00 cm</p>
+			<p style="margin:0px; margin-left: 5px;">Back Left: 40 cm</p>
+			<p style="margin:0px; margin-left: 5px;">Back Right: 10 cm</p>
+		</div>
+		<div style="text-align: center;">
+			<p style="font-size: 32px; margin:auto; width: 90%;">Car Control</p>
+		</div>
+		<div style="display: flex;">
+			<button style="width: 45%; height: 50px; margin: auto;">AUTO</button>
+			<button style="width: 45%; height: 50px; margin: auto;">MANUAL</button>
+		</div>
 	</div>
 </div>
 </body>

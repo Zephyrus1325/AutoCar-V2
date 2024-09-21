@@ -4,170 +4,74 @@
 <title>AutoCar V2 Inteface</title>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <style>
-.motor_controls {
-	border: solid black 5px;
-    width: 150px;
-	height: 594px;
+div {
+	
 }
 
-.motor_controls_divider {
-	border: solid gray 2px;
+.indicators {
+	display: flex;
+	border: solid blue 2px;
 }
 
-.slider {
-  -webkit-appearance: none;
-  width: 20%;
-  height: 400px;
-  background: #d3d3d3;
-  outline: none;
-  opacity: 0.7;
-  -webkit-transition: .2s;
-  transition: opacity .2s;
+.indicator {
+	border: solid black 2px;
+	height: 500px;
+	width: 180px;	
+	margin: 5px;
 }
-
-.slider:hover {
-  opacity: 1;
-}
-
-.slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 25px;
-  height: 25px;
-  background: #04AA6D;
-  cursor: pointer;
-}
-
-.slider::-moz-range-thumb {
-  width: 25px;
-  height: 25px;
-  background: #04AA6D;
-  cursor: pointer;
-}
-
-
-.ultrassound_readings {
-	text-align: left;
-	margin-right: 10px ;
-	width: 300
-}
-
-.modeButton {
-	margin-top: 0px;
-	margin-bottom: 0px;
-	width:140px;
-	height: 50px;
-}
-
-.motor_configs {
-	border: solid black 5px;
-	width: 170px;
-}
-
-
 
 </style>
 </head>
 <body>
-<table style="margin-left:30px;">
-	<tr>
-		<th>
-			<div class="motor_configs">
-				<table align="center">
-					<tr>
-						<th colspan="2">
-							<button class="modeButton" id="motor_mode_auto" type="button"> AUTOMATIC </button>
-						</th>
-					</tr>
-					<tr>
-						<th colspan="2">
-							<button class="modeButton" id="motor_mode_manual" type="button"> MANUAL </button>
-						</th>
-					</tr>
-					<tr>
-						<th>
-							<p id="motor_speedIndicator"> Speed: 0.0 cm/s </p>
-						</th>
-						<th>
-							<p id="motor_throttleIndicator"> Throttle: 0% </p>
-						</th>
-					</tr>
-					<tr>
-						<th>
-							<input class="slider" id="motor_speedSlider" orient="vertical" type="range" step="0.1" value="0" min="0" max="15">
-						</th>
-						<th>
-							<input class="slider" id="motor_throttleSlider"orient="vertical" type="range" step="1" value="0" min="0" max="255">
-						</th>
-					</tr>
-				</table>
+<div class="indicators">
+	<div class="indicator">
+		<div style="text-align: center;">
+			<p style="font-size: 32px; margin:auto; margin-top:20px; width: 80%;">Left Motor</p>
+		</div>
+		<div style="display: flex; text-align:center; height: 10%;">
+			<div style="width:50%; margin: auto; border: solid black 1px;">
+				<p style="margin:0px;">Setpoint:</p>
+				<p style="margin:0px;">10.0 cm/s</p>
 			</div>
-		</th>
-		<th>
-			<div class="motor_controls">
-				<table align="center">
-					<tr>
-						<p style="margin-top: 40px; margin-bottom: 35px; text-align: center; font-size: 25px;"> Left Motor </p>
-					</tr>
-					<tr>
-						<th>
-							<p id="motorL_speedIndicator"> Speed: 0.0 cm/s </p>
-						</th>
-						<th>
-							<p id="motorL_throttleIndicator"> Throttle: 0% </p>
-						</th>
-					</tr>
-					<tr>
-						<th>
-							<input class="slider" id="motorL_speedSlider" orient="vertical" type="range" step="0.1" value="0" min="0" max="15">
-						</th>
-						<th>
-							<input class="slider" id="motorL_throttleSlider"orient="vertical" type="range" step="1" value="0" min="0" max="255">
-						</th>
-					</tr>
-				</table>
+			<div style="width:50%; margin: auto; border: solid black 1px;">
+				<p style="margin:0px;">Throttle:</p>
+				<p style="margin:0px;">100%</p>
 			</div>
-		</th>
-		<th>
-			<div class="motor_controls">
-				<table align="center">
-					<tr>
-						<p style="margin-top: 40px; margin-bottom: 35px; text-align: center; font-size: 25px;"> Right Motor </p>
-					</tr>
-					<tr>
-						<th>
-							<p id="motorR_speedIndicator"> Speed: 0.0 cm/s </p>
-						</th>
-						<th>
-							<p id="motorR_throttleIndicator"> Throttle: 0% </p>
-						</th>
-					</tr>
-					<tr>
-						<th>
-							<input class="slider" id="motorR_speedSlider" orient="vertical" type="range" step="0.1" value="0" min="0" max="15">
-						</th>
-						<th>
-							<input class="slider" id="motorR_throttleSlider"orient="vertical" type="range" step="1" value="0" min="0" max="255">
-						</th>
-					</tr>
-				</table>
+		</div>
+		<div>
+			<div style="margin:auto; width: 80%;">
+				<label>Setpoint</label>
+				<input type="text" style="width: 40px; text-align: center;"> cm/s
+				<label>Throttle</label>
+				<input type="text" style="width: 40px; text-align: center; margin-left: 1.5px;"> %  
 			</div>
-		</th>
-		<th>
-			<div class="ultrassound_readings">
-				<p style="margin:0px;" id="battery_voltage_value">Tensao Bateria: 0.0 V </p>
-				<p style="margin:0px;" id="ultrassound_front_value"> Sensor Frente: 0.0 cm </p>
-				<p style="margin:0px;" id="ultrassound_front_left_value"> Sensor Frente-Esquerda: 0.0 cm </p>
-				<p style="margin:0px;" id="ultrassound_front_right_value"> Sensor Frente-Direita: 0.0 cm </p>
-				<p style="margin:0px;" id="ultrassound_left_value"> Sensor Esquerda: 0.0 cm </p>
-				<p style="margin:0px;" id="ultrassound_right_value"> Sensor Direita: 0.0 cm </p>
-				<p style="margin:0px;" id="ultrassound_back_left_value"> Sensor Traseira-esquerda: 0.0 cm </p>
-				<p style="margin:0px;" id="ultrassound_back_right_value"> Sensor Traseira-direita: 0.0 cm </p>
-				<p style="margin:0px;" id="ultrassound_back_value"> Sensor Traseira: 0.0 cm </p>
+			<div style="margin:auto; width: 50%;">
+				<label>Kp</label>
+				<input type="text" style="width: 40px; text-align: center; margin-left: 6.5px;">
+				<label>Ki	</label>
+				<input type="text" style="width: 40px; text-align: center; margin-left: 10px;">
+				<label>Kd</label>
+				<input type="text" style="width: 40px; text-align: center; margin-left: 6.5px;"> 
+				<button style="width: 100%;">send PID</button>
 			</div>
-		</th>
-	</tr>
-</table>
+			<div style="text-align:center">
+				<p style="margin:0px">Kp: 0.00</p>
+				<p style="margin:0px">Ki: 0.00</p>
+				<p style="margin:0px">Kd: 0.00</p>
+			</div>
+		</div>
+		<div  style="display: flex;">
+			<button style="width: 45%; height: 50px; margin: auto;">CLOSED LOOP</button>
+			<button style="width: 45%; height: 50px; margin: auto;">OPEN LOOP</button>
+		</div>
+		
+	</div>
+	<div class="indicator">
+	
+	</div>
+	<div class="indicator">
+	</div>
+</div>
 </body>
 <script>
 	
@@ -319,7 +223,7 @@
 		motorR_slider_throttle.value = data.motor.right.throttle;
 		
 		// Atualizar ultrassons
-		document.getElementById("battery_voltage_value").innerText =  "Tensao Bateria: " + data.battery.voltage + " V";
+		document.getElementById("battery_voltage_value").innerText =  "Tensao Bateria: " + data.battery.voltage.toFixed(1) + " V";
 		document.getElementById("ultrassound_front_left_value").innerText =  "Sensor Frente Esquerda: " + data.ultrassound.front_left + " cm";
 		document.getElementById("ultrassound_front_value").innerText = 		 "Sensor Frente: " + data.ultrassound.front + " cm";
 		document.getElementById("ultrassound_front_right_value").innerText = "Sensor Frente Direita: " + data.ultrassound.front_right + " cm";

@@ -20,7 +20,8 @@ const char* password = "LabMaker";
 
 // Variáveis do carrinho, estão de exemplo aqui
 CarData car;
-int mode = 0;
+int leftMode = 0;
+int rightMode = 0;
 int throttleLeft = 0;
 int throttleRight = 0;
 float speedLeft = 0;
@@ -57,12 +58,12 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
         String value = changeTo;
         // Muda as variaveis de acordo com o que precisa ser alterado
         // TODO: Adicionar comunicação Serial com o Arduino ao inves de variaveis globais do ESP
-        if (strcmp(toChange, "motorMode") == 0){
-            mode = (value == "manual" ? 0 : 1);
-            sendCommand(COMMAND_MOTOR_SETMOTORMODE, (value == "manual" ? 0 : 1));
+        if (strcmp(toChange, "leftMode") == 0){
+            leftMode = value.toInt();
+            sendCommand(COMMAND_MOTOR_LEFT_SETMODE, leftMode);
         } else if (strcmp(toChange, "leftSetpoint") == 0){
             speedLeft = value.toFloat();
-            sendCommand(COMMAND_MOTOR_LEFT_SETSPEED, value.toInt());
+            sendCommand(COMMAND_MOTOR_LEFT_SETSPEED, value.toFloat());
         } else if (strcmp(toChange, "leftThrottle") == 0){
             throttleLeft = value.toFloat();
             sendCommand(COMMAND_MOTOR_LEFT_SETTHROTTLE, value.toInt());
@@ -72,9 +73,12 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
 
         } else if (strcmp(toChange, "leftKd") == 0){
 
-        } else if (strcmp(toChange, "rightSetpoint") == 0){
+        } else if (strcmp(toChange, "rightMode") == 0){
+            rightMode = value.toInt();
+            sendCommand(COMMAND_MOTOR_RIGHT_SETMODE, rightMode);
+        }else if (strcmp(toChange, "rightSetpoint") == 0){
             speedRight = value.toFloat();
-            sendCommand(COMMAND_MOTOR_RIGHT_SETSPEED, value.toInt());
+            sendCommand(COMMAND_MOTOR_RIGHT_SETSPEED, value.toFloat());
         } else if (strcmp(toChange, "rightThrottle") == 0){
             throttleRight = value.toFloat();
             sendCommand(COMMAND_MOTOR_RIGHT_SETTHROTTLE, value.toInt());
@@ -128,13 +132,14 @@ JsonDocument carData(){
     data["ultrassound"]["back"] = car.ultrassound_reading_back;
     data["ultrassound"]["back_left"] = car.ultrassound_reading_back_left;
     data["ultrassound"]["back_right"] = car.ultrassound_reading_back_right;
-    data["motor"]["mode"] = car.motor_mode;
+    data["motor"]["mode"]["mode"] = car.motor_left_mode;
     data["motor"]["left"]["setpoint"] = (float) car.motor_left_setpoint / FLOAT_MULTIPLIER;
     data["motor"]["left"]["speed"] = (float) car.motor_left_speed / FLOAT_MULTIPLIER;
     data["motor"]["left"]["throttle"] = car.motor_left_throttle;
     data["motor"]["left"]["kp"] = (float) car.motor_left_kp / FLOAT_MULTIPLIER;
     data["motor"]["left"]["ki"] = (float) car.motor_left_ki / FLOAT_MULTIPLIER;
     data["motor"]["left"]["kd"] = (float) car.motor_left_kd / FLOAT_MULTIPLIER;
+    data["motor"]["right"]["mode"] = car.motor_right_mode;
     data["motor"]["right"]["setpoint"] = (float) car.motor_right_setpoint / FLOAT_MULTIPLIER;
     data["motor"]["right"]["speed"] = (float) car.motor_right_speed / FLOAT_MULTIPLIER;
     data["motor"]["right"]["throttle"] = car.motor_right_throttle;

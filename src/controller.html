@@ -4,21 +4,29 @@
 <title>AutoCar V2 Inteface</title>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <style>
-div {
-	border: solid black 1px;
+body {
+    background-color: #121212;
+    color: #f0ece2;
+}
+
+p {
+    color: lightgray;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 15px;
 }
 
 .indicators {
 	display: flex;
-	border: solid blue 2px;
 }
 
 .indicator {
-	border: solid black 2px;
+    border-radius: 12px;
+	border: solid lightgray 2px;
 	height: 500px;
 	width: 180px;	
 	margin: 5px;
 }
+
 
 </style>
 </head>
@@ -26,14 +34,64 @@ div {
 <div class="indicators">
 	<div class="indicator">
 		<div style="text-align: center;">
-			<p style="font-size: 32px; margin:auto; margin-top:20px; width: 80%;">Left Motor</p>
+			<p style="font-size: 26px; font-weight: bold; margin:auto; margin-top:20px; width: 90%;">Left Motor</p>
 		</div>
+        <div style="text-align:center;">
+            <p style="margin:0px; font-size: 20px;">Actual Speed:</p>
+            <p style="margin:0px; font-size: 20px;" id="motorL_actSpeed">10.0 cm/s</p>
+        </div>
 		<div style="display: flex; text-align:center; height: 10%;">
-			<div style="width:50%; margin: auto; border: solid black 1px;">
+			<div style="width:50%; margin: auto; border: solid gray 3px;">
+				<p style="margin:0px;">Setpoint:</p>
+				<p style="margin:0px;" id="motorL_setSpeed">10.0 cm/s</p>
+			</div>
+			<div style="width:50%; margin: auto; border: solid gray 3px;">
+				<p style="margin:0px;">Throttle:</p>
+				<p style="margin:0px;" id="motorL_actthrottle">100%</p>
+			</div>
+		</div>
+		<div>
+			<div style="margin:auto; width: 80%;">
+				<label>Setpoint</label>
+				<input type="text" id="motorL_setPoint_input" style="width: 40px; text-align: center;"> cm/s
+				<label>Throttle</label>
+				<input type="text" id="motorL_throttle_input"style="width: 40px; text-align: center; margin-left: 1.5px;"> %  
+			</div>
+			<div style="margin:auto; width: 50%;">
+				<label>Kp</label>
+				<input type="text" id="motorL_Kp_input" style="width: 40px; text-align: center; margin-left: 6.5px;">
+				<label>Ki	</label>
+				<input type="text" id="motorL_Ki_input" style="width: 40px; text-align: center; margin-left: 10px;">
+				<label>Kd</label>
+				<input type="text" id="motorL_Kd_input" style="width: 40px; text-align: center; margin-left: 6.5px;"> 
+				<button style="width: 100%;" id="motorL_PID_sendButton">send PID</button>
+			</div>
+			<div style="text-align:center">
+				<p style="margin:0px" id="motorL_Kp">Kp: 0.00</p>
+				<p style="margin:0px" id="motorL_Ki">Ki: 0.00</p>
+				<p style="margin:0px" id="motorL_Kd">Kd: 0.00</p>
+			</div>
+		</div>
+		<div  style="display: flex;">
+			<button style="width: 45%; height: 50px; margin: auto;" id="motorL_mode_closed_button">CLOSED LOOP</button>
+			<button style="width: 45%; height: 50px; margin: auto;" id="motorL_mode_open_button">OPEN LOOP</button>
+		</div>
+		
+	</div>
+	<div class="indicator">
+		<div style="text-align: center;">
+			<p style="font-size: 26px; font-weight: bold; margin:auto; margin-top:20px; width: 95%;">Right Motor</p>
+		</div>
+        <div style="text-align:center;">
+            <p style="margin:0px; font-size: 20px;">Actual Speed:</p>
+            <p style="margin:0px; font-size: 20px;">10.0 cm/s</p>
+        </div>
+		<div style="display: flex; text-align:center; height: 10%;">
+			<div style="width:50%; margin: auto; border: solid gray 3px;">
 				<p style="margin:0px;">Setpoint:</p>
 				<p style="margin:0px;">10.0 cm/s</p>
 			</div>
-			<div style="width:50%; margin: auto; border: solid black 1px;">
+			<div style="width:50%; margin: auto; border: solid gray 3px;">
 				<p style="margin:0px;">Throttle:</p>
 				<p style="margin:0px;">100%</p>
 			</div>
@@ -68,49 +126,7 @@ div {
 	</div>
 	<div class="indicator">
 		<div style="text-align: center;">
-			<p style="font-size: 32px; margin:auto; margin-top:20px; width: 90%;">Right Motor</p>
-		</div>
-		<div style="display: flex; text-align:center; height: 10%;">
-			<div style="width:50%; margin: auto; border: solid black 1px;">
-				<p style="margin:0px;">Setpoint:</p>
-				<p style="margin:0px;">10.0 cm/s</p>
-			</div>
-			<div style="width:50%; margin: auto; border: solid black 1px;">
-				<p style="margin:0px;">Throttle:</p>
-				<p style="margin:0px;">100%</p>
-			</div>
-		</div>
-		<div>
-			<div style="margin:auto; width: 80%;">
-				<label>Setpoint</label>
-				<input type="text" style="width: 40px; text-align: center;"> cm/s
-				<label>Throttle</label>
-				<input type="text" style="width: 40px; text-align: center; margin-left: 1.5px;"> %  
-			</div>
-			<div style="margin:auto; width: 50%;">
-				<label>Kp</label>
-				<input type="text" style="width: 40px; text-align: center; margin-left: 6.5px;">
-				<label>Ki	</label>
-				<input type="text" style="width: 40px; text-align: center; margin-left: 10px;">
-				<label>Kd</label>
-				<input type="text" style="width: 40px; text-align: center; margin-left: 6.5px;"> 
-				<button style="width: 100%;">send PID</button>
-			</div>
-			<div style="text-align:center">
-				<p style="margin:0px">Kp: 0.00</p>
-				<p style="margin:0px">Ki: 0.00</p>
-				<p style="margin:0px">Kd: 0.00</p>
-			</div>
-		</div>
-		<div  style="display: flex;">
-			<button style="width: 45%; height: 50px; margin: auto;">CLOSED LOOP</button>
-			<button style="width: 45%; height: 50px; margin: auto;">OPEN LOOP</button>
-		</div>
-		
-	</div>
-	<div class="indicator">
-		<div style="text-align: center;">
-			<p style="font-size: 32px; margin:auto; margin-top:20px; width: 90%;">Ultrassounds</p>
+			<p style="font-size: 26px; font-weight: bold; margin:auto; margin-top:20px; width: 90%;">Ultrassounds</p>
 		</div>
 		<div>
 			<p style="margin:0px; margin-left: 5px;">Front: 15 cm</p>
@@ -123,12 +139,22 @@ div {
 			<p style="margin:0px; margin-left: 5px;">Back Right: 10 cm</p>
 		</div>
 		<div style="text-align: center;">
-			<p style="font-size: 32px; margin:auto; width: 90%;">Car Control</p>
+			<p style="font-size: 26px; font-weight: bold; margin:auto; width: 90%;">Car Control</p>
 		</div>
 		<div style="display: flex;">
 			<button style="width: 45%; height: 50px; margin: auto;">AUTO</button>
 			<button style="width: 45%; height: 50px; margin: auto;">MANUAL</button>
 		</div>
+        <div style="text-align: center;">
+			<p style="font-size: 26px; font-weight: bold; margin:auto; width: 90%;">Random Info</p>
+		</div>
+        <div style="text-align:center;">
+            <p style="margin: 5px;">Latency: 100 ms</p>
+            <p style="margin: 5px; margin-bottom:0px">Update Frequency:</p>
+            <p style="margin: 5px; margin-top:0px">10.0 Hz</p>
+            
+        </div>
+        
 	</div>
 </div>
 </body>

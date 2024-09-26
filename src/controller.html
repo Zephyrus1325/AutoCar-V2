@@ -106,7 +106,7 @@ p {
 			<div style="margin:auto; width: 50%;">
 				<label>Kp</label>
 				<input type="text" id="input_motorright_kp" style="width: 40px; text-align: center; margin-left: 6.5px;">
-				<label>Ki	</label>
+				<label>Ki</label>
 				<input type="text" id="input_motorright_ki" style="width: 40px; text-align: center; margin-left: 10px;">
 				<label>Kd</label>
 				<input type="text" id="input_motorright_kd" style="width: 40px; text-align: center; margin-left: 6.5px;"> 
@@ -119,8 +119,8 @@ p {
 			</div>
 		</div>
 		<div  style="display: flex;">
-			<button  id="input_motorleft_closedloop_button" style="width: 45%; height: 50px; margin: auto;">CLOSED LOOP</button>
-			<button  id="input_motorleft_openloop_button" style="width: 45%; height: 50px; margin: auto;">OPEN LOOP</button>
+			<button  id="input_motorright_closedloop_button" style="width: 45%; height: 50px; margin: auto;">CLOSED LOOP</button>
+			<button  id="input_motorright_openloop_button" style="width: 45%; height: 50px; margin: auto;">OPEN LOOP</button>
 		</div>
 		
 	</div>
@@ -149,16 +149,16 @@ p {
 			<p style="font-size: 26px; font-weight: bold; margin:auto; width: 90%;">Inertial Unit</p>
 		</div>
         <div>
-			<p id="indicator_imu_accelx" style="margin:0px; margin-left: 5px;">AccelX: 0.00 m/s²</p>
-			<p id="indicator_imu_accely" style="margin:0px; margin-left: 5px;">AccelY: 0.00 m/s²</p>
-			<p id="indicator_imu_accelz" style="margin:0px; margin-left: 5px;">AccelZ: 0.00 m/s²</p>
+			<p id="indicator_imu_accelx" style="margin:0px; margin-left: 5px;">AccelX: 0.00 m/s2</p>
+			<p id="indicator_imu_accely" style="margin:0px; margin-left: 5px;">AccelY: 0.00 m/s2</p>
+			<p id="indicator_imu_accelz" style="margin:0px; margin-left: 5px;">AccelZ: 0.00 m/s2</p>
 			<p id="indicator_imu_gyrox" style="margin:0px; margin-left: 5px;">GyroX: 0.00 rad/s</p>
 			<p id="indicator_imu_gyroy" style="margin:0px; margin-left: 5px;">GyroY: 0.00 rad/s</p>
 			<p id="indicator_imu_gyroz" style="margin:0px; margin-left: 5px;">GyroZ: 0.00 rad/s</p>
 			<p id="indicator_imu_pitch" style="margin:0px; margin-left: 5px;">Pitch: 0.00 deg</p>
 			<p id="indicator_imu_roll" style="margin:0px; margin-left: 5px;">Roll: 0.00 deg</p>
             <p id="indicator_imu_heading" style="margin:0px; margin-left: 5px;">Heading: 360 deg</p>
-            <p id="indicator_imu_temperature" style="margin:0px; margin-left: 5px;">Temperature: 25°C</p>
+            <p id="indicator_imu_temperature" style="margin:0px; margin-left: 5px;">Temperature: 25C</p>
             <p id="indicator_imu_pressure" style="margin:0px; margin-left: 5px;">Pressure: 1060 mmHg</p>
 		</div>
 	</div>
@@ -168,10 +168,10 @@ p {
         </div>
         <div style="text-align:center;">
             <p id="indicator_battery_voltage" style="margin: 5px;">Battery: 11.1 V</p>
-            <p id="indicator_latency"style="margin: 5px;">Latency: 100 ms</p>
+            <p id="indicator_latency"style="margin: 5px;">Latency: 0 ms</p>
             <p style="margin: 5px; margin-bottom:0px">Update Frequency:</p>
             <p id="indicator_update_frequency" style="margin: 5px; margin-top:0px">10.0 Hz</p>
-            
+            <p id="indicator_toolate" style="margin: 5px;"></p>
             
         </div>
     </div>
@@ -184,19 +184,36 @@ p {
 	
 	var gateway = `ws://${window.location.hostname}/ws`;
 	var websocket;	
+    var updateFrequency = 0;
+    var latency = 0;
+    var now = new Date();
+    var millis = now.getMilliseconds();
+    var lastReading = millis;
+    var latency_low = true;
 	// Init web socket when the page loads
 	window.addEventListener('load', onload);
+
+    setInterval(function(){
+        if(!latency_low){
+            document.getElementById("indicator_toolate").innerText = "LOST CONNECTION WITH ESP!";
+            websocket.close();
+        } else {
+            document.getElementById("indicator_toolate").innerText = "";
+        }
+        latency_low = false;
+    }, 1000);
 
 	function onload(event) {
 	    initWebSocket();
 	}
-	
+
 	function initWebSocket() {
-	    console.log('Trying to open a WebSocket connection…');
+	    console.log('Trying to open a WebSocket connection...');
 	    websocket = new WebSocket(gateway);
 	    websocket.onopen = onOpen;
 	    websocket.onclose = onClose;
 	    websocket.onmessage = onMessage;
+        websocket.onerror = onError;
 	}
 
 	// When websocket is established, call the getReadings() function
@@ -209,12 +226,50 @@ p {
 	    setTimeout(initWebSocket, 2000);
 	}
 
+    function onError(event){
+        console.log("An Socket error ocurred ", event," closing socket");
+        websocket.close();
+    }
+
 	// Function that receives the message from the ESP32 with the readings
 	function onMessage(event) {
-		var data = JSON.parse(event.data);
+		data = JSON.parse(event.data);
+        now = new Date();
+        millis = now.getMilliseconds();
+        if(millis - lastReading > 0){
+            latency = millis - lastReading;
+        }
+        if(latency < 500){
+            latency_low = true;
+        }  
+        lastReading = millis;
 		updateIndicators(data);
 	}
 	
+    document.getElementById("input_motorleft_closedloop_button").addEventListener("click", e =>{
+        websocket.send(JSON.stringify({"toChange" : "leftMode", "changeTo" : "0"}));
+    });
+
+    document.getElementById("input_motorleft_openloop_button").addEventListener("click", e =>{
+        websocket.send(JSON.stringify({"toChange" : "leftMode", "changeTo" : "1"}));
+    });
+	
+
+    document.getElementById("input_motorright_closedloop_button").addEventListener("click", e =>{
+        websocket.send(JSON.stringify({"toChange" : "rightMode", "changeTo":"0"}));
+    });
+
+    document.getElementById("input_motorright_openloop_button").addEventListener("click", e =>{
+        websocket.send(JSON.stringify({"toChange" : "rightMode", "changeTo" : "1"}));
+    });
+
+    document.getElementById("input_carmode_auto").addEventListener("click", e =>{
+        websocket.send(JSON.stringify({"toChange" : "navigationMode", "changeTo" : "0"}));
+    });
+
+    document.getElementById("input_carmode_manual").addEventListener("click", e =>{
+        websocket.send(JSON.stringify({"toChange" : "navigationMode", "changeTo" : "1"}));
+    });
 	
 	
 	// ---------------------------------------------------------------------
@@ -222,7 +277,46 @@ p {
 	// ---------------------------------------------------------------------
 	
 	function updateIndicators(data){
-        
+        document.getElementById("indicator_motorleft_actspeed").innerText = data.motor.left.speed.toFixed(1) + " cm/s";
+        document.getElementById("indicator_motorleft_setpoint").innerText = data.motor.left.setpoint.toFixed(1) + " cm/s";
+        document.getElementById("indicator_motorleft_throttle").innerText = data.motor.left.throttle;
+        document.getElementById("indicator_motorleft_kp").innerText = "Kp: " + data.motor.left.kp.toFixed(2);
+        document.getElementById("indicator_motorleft_ki").innerText = "Ki: " + data.motor.left.ki.toFixed(2);
+        document.getElementById("indicator_motorleft_kd").innerText = "Kd: " + data.motor.left.kd.toFixed(2);
+        document.getElementById("input_motorleft_closedloop_button").style.backgroundColor = data.motor.left.mode == 0 ? "#00FF00" : "#101010";
+        document.getElementById("input_motorleft_openloop_button").style.backgroundColor = data.motor.left.mode == 0 ? "#101010" : "#00FF00";
+        document.getElementById("indicator_motorright_actspeed").innerText = data.motor.right.speed.toFixed(1) + " cm/s";
+        document.getElementById("indicator_motorright_setpoint").innerText = data.motor.right.setpoint.toFixed(1) + " cm/s";
+        document.getElementById("indicator_motorright_throttle").innerText = data.motor.right.throttle;
+        document.getElementById("indicator_motorright_kp").innerText = "Kp: " + data.motor.left.kp.toFixed(2);
+        document.getElementById("indicator_motorright_ki").innerText = "Ki: " + data.motor.left.ki.toFixed(2);
+        document.getElementById("indicator_motorright_kd").innerText = "Kd: " + data.motor.left.kd.toFixed(2);
+        document.getElementById("input_motorright_closedloop_button").style.backgroundColor = data.motor.right.mode == 0 ? "#00FF00" : "#101010";
+        document.getElementById("input_motorright_openloop_button").style.backgroundColor = data.motor.right.mode == 0 ? "#101010" : "#00FF00";
+        document.getElementById("indicator_ultrassound_front").innerText = "Front: " + data.ultrassound.front + " cm";
+        document.getElementById("indicator_ultrassound_front_left").innerText = "Front Left: " +  data.ultrassound.front_left + " cm";
+        document.getElementById("indicator_ultrassound_front_right").innerText = "Front Right: " + data.ultrassound.front_right + " cm";
+        document.getElementById("indicator_ultrassound_left").innerText = "Left: " + data.ultrassound.left + " cm";
+        document.getElementById("indicator_ultrassound_right").innerText = "Right: " + data.ultrassound.right + " cm";
+        document.getElementById("indicator_ultrassound_back").innerText = "Back: " + data.ultrassound.back + " cm";
+        document.getElementById("indicator_ultrassound_back_left").innerText = "Back Left: " + data.ultrassound.back_left + " cm";
+        document.getElementById("indicator_ultrassound_back_right").innerText = "Back Right: " + data.ultrassound.back_right + " cm";
+        document.getElementById("input_carmode_auto").style.backgroundColor = data.navigation.mode == 0 ? "#00FF00" : "#101010";
+        document.getElementById("input_carmode_manual").style.backgroundColor = data.navigation.mode == 0 ? "#101010" : "#00FF00";
+        document.getElementById("indicator_imu_accelx").innerText = "Accel: " + data.imu.acc.treated.x.toFixed(1) + " m/s2";
+        document.getElementById("indicator_imu_accely").innerText = "Accel: " + data.imu.acc.treated.y.toFixed(1) + " m/s2";
+        document.getElementById("indicator_imu_accelz").innerText = "Accel: " + data.imu.acc.treated.z.toFixed(1) + " m/s2";
+        document.getElementById("indicator_imu_gyrox").innerText = "Gyro: " + data.imu.gyro.treated.x.toFixed(1) + " rad/s";
+        document.getElementById("indicator_imu_gyroy").innerText = "Gyro: " + data.imu.gyro.treated.y.toFixed(1) + " rad/s";
+        document.getElementById("indicator_imu_gyroz").innerText = "Gyro: " + data.imu.gyro.treated.z.toFixed(1) + " rad/s";
+        document.getElementById("indicator_imu_temperature").innerText = "Temperature: " + data.imu.baro.treated.temperature.toFixed(1) + " C";
+        document.getElementById("indicator_imu_pressure").innerText = "Pressure: " + data.imu.baro.treated.pressure.toFixed(1) + " mmHg";
+        document.getElementById("indicator_imu_pitch").innerText = "Pitch: " + data.navigation.position.pitch.toFixed(1) + " deg";
+        document.getElementById("indicator_imu_roll").innerText = "Roll: " +  data.navigation.position.roll.toFixed(1) + " deg";
+        document.getElementById("indicator_imu_heading").innerText = "Heading: " + data.navigation.position.heading + " deg";
+        document.getElementById("indicator_battery_voltage").innerText = data.battery.voltage.toFixed(1) + " V";
+        document.getElementById("indicator_latency").innerText ="Latency: " + latency + " ms";
+        document.getElementById("indicator_update_frequency").innerText = (1000/latency).toFixed(1) + " Hz";
 	}
 	
 	

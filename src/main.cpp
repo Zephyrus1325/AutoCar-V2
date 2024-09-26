@@ -15,21 +15,12 @@ AsyncWebSocket ws("/ws");
 timer webSocketTimer{0, 100, true, true, true};
 
 // Credenciais de Rede 
-const char* ssid = "LabMaker_Teste";
-const char* password = "LabMaker";
+const char* ssid = "MarcoFilho";
+const char* password = "MarcoFilho12";
 
 // Variáveis do carrinho, estão de exemplo aqui
 CarData car;
-int leftMode = 0;
-int rightMode = 0;
-int throttleLeft = 0;
-int throttleRight = 0;
-float speedLeft = 0;
-float speedRight = 0;
-float ultrassound[8] = {0,0,0,0,0,0,0,0};
-float motor[4] = {0,0,0,0};
-
-
+int32_t navigationMode = 0;
 // O que retornar em caso de não encontrar o servidor
 void notFound(AsyncWebServerRequest *request) {
     request->send(404, "text/plain", "Not found");
@@ -56,16 +47,13 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
         const char *toChange = json["toChange"];
         const char *changeTo = json["changeTo"];
         String value = changeTo;
+        
         // Muda as variaveis de acordo com o que precisa ser alterado
-        // TODO: Adicionar comunicação Serial com o Arduino ao inves de variaveis globais do ESP
         if (strcmp(toChange, "leftMode") == 0){
-            leftMode = value.toInt();
-            sendCommand(COMMAND_MOTOR_LEFT_SETMODE, leftMode);
+            sendCommand(COMMAND_MOTOR_LEFT_SETMODE, value.toInt());
         } else if (strcmp(toChange, "leftSetpoint") == 0){
-            speedLeft = value.toFloat();
             sendCommand(COMMAND_MOTOR_LEFT_SETSPEED, value.toFloat());
         } else if (strcmp(toChange, "leftThrottle") == 0){
-            throttleLeft = value.toFloat();
             sendCommand(COMMAND_MOTOR_LEFT_SETTHROTTLE, value.toInt());
         } else if (strcmp(toChange, "leftKp") == 0){
 
@@ -74,13 +62,10 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
         } else if (strcmp(toChange, "leftKd") == 0){
 
         } else if (strcmp(toChange, "rightMode") == 0){
-            rightMode = value.toInt();
-            sendCommand(COMMAND_MOTOR_RIGHT_SETMODE, rightMode);
+            sendCommand(COMMAND_MOTOR_RIGHT_SETMODE, value.toInt());
         }else if (strcmp(toChange, "rightSetpoint") == 0){
-            speedRight = value.toFloat();
             sendCommand(COMMAND_MOTOR_RIGHT_SETSPEED, value.toFloat());
         } else if (strcmp(toChange, "rightThrottle") == 0){
-            throttleRight = value.toFloat();
             sendCommand(COMMAND_MOTOR_RIGHT_SETTHROTTLE, value.toInt());
         } else if (strcmp(toChange, "rightKp") == 0){
 
@@ -89,7 +74,8 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
         } else if (strcmp(toChange, "rightKd") == 0){
 
         } else if (strcmp(toChange, "navigationMode") == 0){
-
+            navigationMode = value.toInt();
+            sendCommand(COMMAND_NAVIGATION_SETMODE, navigationMode);
         } else if (strcmp(toChange, "destionation") == 0){
 
         } else if (strcmp(toChange, "home") == 0){
@@ -132,7 +118,7 @@ JsonDocument carData(){
     data["ultrassound"]["back"] = car.ultrassound_reading_back;
     data["ultrassound"]["back_left"] = car.ultrassound_reading_back_left;
     data["ultrassound"]["back_right"] = car.ultrassound_reading_back_right;
-    data["motor"]["mode"]["mode"] = car.motor_left_mode;
+    data["motor"]["left"]["mode"] = car.motor_left_mode;
     data["motor"]["left"]["setpoint"] = (float) car.motor_left_setpoint / FLOAT_MULTIPLIER;
     data["motor"]["left"]["speed"] = (float) car.motor_left_speed / FLOAT_MULTIPLIER;
     data["motor"]["left"]["throttle"] = car.motor_left_throttle;
@@ -146,25 +132,29 @@ JsonDocument carData(){
     data["motor"]["right"]["kp"] = (float) car.motor_right_kp / FLOAT_MULTIPLIER;
     data["motor"]["right"]["ki"] = (float) car.motor_right_ki / FLOAT_MULTIPLIER;
     data["motor"]["right"]["kd"] = (float) car.motor_right_kd / FLOAT_MULTIPLIER;
-    data["IMU"]["gyro"]["raw"]["x"] = car.gyro_raw_x;
-    data["IMU"]["gyro"]["raw"]["y"] = car.gyro_raw_y;
-    data["IMU"]["gyro"]["raw"]["z"] = car.gyro_raw_z;
-    data["IMU"]["gyro"]["treated"]["x"] = (float) car.gyro_treated_x / FLOAT_MULTIPLIER;
-    data["IMU"]["gyro"]["treated"]["y"] = (float) car.gyro_treated_y / FLOAT_MULTIPLIER;
-    data["IMU"]["gyro"]["treated"]["z"] = (float) car.gyro_treated_z / FLOAT_MULTIPLIER;
-    data["IMU"]["acc"]["raw"]["x"] = car.acc_raw_x;
-    data["IMU"]["acc"]["raw"]["y"] = car.acc_raw_y;
-    data["IMU"]["acc"]["raw"]["z"] = car.acc_raw_z;
-    data["IMU"]["acc"]["treated"]["x"] = (float) car.acc_treated_x / FLOAT_MULTIPLIER;
-    data["IMU"]["acc"]["treated"]["y"] = (float) car.acc_treated_y / FLOAT_MULTIPLIER;
-    data["IMU"]["acc"]["treated"]["z"] = (float) car.acc_treated_z / FLOAT_MULTIPLIER;
-    data["IMU"]["mag"]["raw"]["x"] = car.mag_raw_x;
-    data["IMU"]["mag"]["raw"]["y"] = car.mag_raw_y;
-    data["IMU"]["mag"]["raw"]["z"] = car.mag_raw_z;
-    data["IMU"]["mag"]["treated"]["x"] = (float) car.mag_treated_x / FLOAT_MULTIPLIER;
-    data["IMU"]["mag"]["treated"]["y"] = (float) car.mag_treated_y / FLOAT_MULTIPLIER;
-    data["IMU"]["mag"]["treated"]["z"] = (float) car.mag_treated_z / FLOAT_MULTIPLIER;
-    data["navigation"]["mode"] = car.navigation_mode;
+    data["imu"]["gyro"]["raw"]["x"] = car.gyro_raw_x;
+    data["imu"]["gyro"]["raw"]["y"] = car.gyro_raw_y;
+    data["imu"]["gyro"]["raw"]["z"] = car.gyro_raw_z;
+    data["imu"]["gyro"]["treated"]["x"] = (float) car.gyro_treated_x / FLOAT_MULTIPLIER;
+    data["imu"]["gyro"]["treated"]["y"] = (float) car.gyro_treated_y / FLOAT_MULTIPLIER;
+    data["imu"]["gyro"]["treated"]["z"] = (float) car.gyro_treated_z / FLOAT_MULTIPLIER;
+    data["imu"]["acc"]["raw"]["x"] = car.acc_raw_x;
+    data["imu"]["acc"]["raw"]["y"] = car.acc_raw_y;
+    data["imu"]["acc"]["raw"]["z"] = car.acc_raw_z;
+    data["imu"]["acc"]["treated"]["x"] = (float) car.acc_treated_x / FLOAT_MULTIPLIER;
+    data["imu"]["acc"]["treated"]["y"] = (float) car.acc_treated_y / FLOAT_MULTIPLIER;
+    data["imu"]["acc"]["treated"]["z"] = (float) car.acc_treated_z / FLOAT_MULTIPLIER;
+    data["imu"]["mag"]["raw"]["x"] = car.mag_raw_x;
+    data["imu"]["mag"]["raw"]["y"] = car.mag_raw_y;
+    data["imu"]["mag"]["raw"]["z"] = car.mag_raw_z;
+    data["imu"]["mag"]["treated"]["x"] = (float) car.mag_treated_x / FLOAT_MULTIPLIER;
+    data["imu"]["mag"]["treated"]["y"] = (float) car.mag_treated_y / FLOAT_MULTIPLIER;
+    data["imu"]["mag"]["treated"]["z"] = (float) car.mag_treated_z / FLOAT_MULTIPLIER;
+    data["imu"]["baro"]["raw"]["pressure"] = car.raw_pressure;
+    data["imu"]["baro"]["raw"]["temperature"] = car.raw_temperature;
+    data["imu"]["baro"]["treated"]["pressure"] = (float) car.pressure / FLOAT_MULTIPLIER;
+    data["imu"]["baro"]["treated"]["temperature"] = (float) car.temperature / FLOAT_MULTIPLIER;
+    data["navigation"]["mode"] = navigationMode;
     data["navigation"]["position"]["x"] = car.navigation_position_x;
     data["navigation"]["position"]["y"] = car.navigation_position_y;
     data["navigation"]["position"]["z"] = car.navigation_position_z;

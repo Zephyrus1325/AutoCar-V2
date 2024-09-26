@@ -86,8 +86,8 @@ void sendCommand(int32_t command, int32_t value){
     Command data{command, value};
     StreamSend::sendObject(Serial2, &data, sizeof(data));
     //  Debug Info
-    //  Serial.print("Sent Packet! Size: ");
-    //  Serial.println((int)sizeof(*data));
+    //Serial.print("Sent Packet! Size: ");
+    //Serial.println((int)sizeof(data));
 }
 
 // Função de receber dados do Serial
@@ -98,13 +98,13 @@ void receiveData(CarData* data){
     byte packetStatus = StreamSend::receiveObject(Serial2, data, sizeof(*data));
     
     // Debugging info
-    //if(packetStatus == GOOD_PACKET){
-    //    Serial.print("Received Healty Packet: ");
-    //    Serial.println(sizeof(*data));
-    //} else if(packetStatus == BAD_PACKET){
-    //    Serial.println("Bad Packet: ");
-    //    Serial.println(sizeof(*data));
-    //}
+    if(packetStatus == GOOD_PACKET){
+        Serial.print("Received Healty Packet: ");
+        Serial.println(sizeof(*data));
+    } else if(packetStatus == BAD_PACKET){
+        Serial.println("Bad Packet: ");
+        Serial.println(sizeof(*data));
+    }
 }
 
 #endif

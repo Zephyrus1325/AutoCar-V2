@@ -18,12 +18,13 @@ AsyncWebSocket ws("/ws");
 timer webSocketTimer{0, 100, true, true, true};
 
 // Credenciais de Rede 
-const char* ssid = "LabMaker_Teste";
-const char* password = "LabMaker";
+const char* ssid = "AutoCar_V2";
+const char* password = "vroomvroom";
 
 // Variáveis do carrinho, estão de exemplo aqui
 CarData car;
 int32_t navigationMode = 0;
+bool batteryAlert = false;
 // O que retornar em caso de não encontrar o servidor
 void notFound(AsyncWebServerRequest *request) {
     request->send(404, "text/plain", "Not found");
@@ -86,7 +87,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
         } else if (strcmp(toChange, "navigationMode") == 0){
             navigationMode = value.toInt();
             sendCommand(COMMAND_NAVIGATION_SETMODE, navigationMode);
-        } else if (strcmp(toChange, "destionation") == 0){
+        } else if (strcmp(toChange, "destination") == 0){
 
         } else if (strcmp(toChange, "home") == 0){
 
@@ -118,7 +119,7 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
 // Cria um JSON com todos os dados do carro
 JsonDocument carData(){
     JsonDocument data;
-    data["battery"]["voltage"] = (float)analogRead(32)/73.5f;
+    data["battery"]["voltage"] = (float)car.battery_voltage;
     data["battery"]["percentage"] = car.battery_percentage;
     data["ultrassound"]["front"] = car.ultrassound_reading_front;
     data["ultrassound"]["front_left"] = car.ultrassound_reading_front_left;
@@ -183,17 +184,20 @@ JsonDocument carData(){
 void setup() {
     Serial.begin(115200);
     Serial2.begin(115200, SERIAL_8N1, 16, 17);
-    WiFi.mode(WIFI_STA);    // Inicia o ESP como um STATION (cliente de uma rede)
-    WiFi.begin(ssid, password); // Inicia o WIFI com as credenciais de rede
+    //WiFi.mode(WIFI_AP);    // Inicia o ESP como um STATION (cliente de uma rede)
+    //WiFi.begin(ssid, password); // Inicia o WIFI com as credenciais de rede
+    WiFi.softAP(ssid, password); // Inicia o WIFI com as credenciais de rede
     // Se a conexão falhar, desista!
-    if (WiFi.waitForConnectResult() != WL_CONNECTED) {
-        Serial.println("WiFi Failed!");
-        return;
-    }
+    //if (WiFi.waitForConnectResult() != WL_CONNECTED) {
+    //    Serial.println("WiFi Failed!");
+    //    return;
+    //}
     WiFi.setSleep(false); // Desativar modo de economia de energia com o Wifi (adeus latencia!)
+    WiFi.setTxPower(WIFI_POWER_19_5dBm);
     Serial.println();
     Serial.print("IP Address: ");
-    Serial.println(WiFi.localIP()); // Printa o IP no serial para saber onde caralhos estou
+    //Serial.println(WiFi.localIP()); // Printa o IP no serial para saber onde caralhos estou
+    Serial.println(WiFi.softAPIP());
 
     ws.onEvent(onEvent);    // Define qual função deve rodar em um evento do WS
     server.addHandler(&ws); // Define qual é o handler de WS do servidor
@@ -205,7 +209,7 @@ void setup() {
 
     server.onNotFound(notFound);
     server.begin();
-    pinMode(32, INPUT);
+    pinMode(BATTERY_PIN, INPUT);
 }
 void loop() {
     // Checar se há mensagem de update nova
@@ -213,8 +217,21 @@ void loop() {
     // A cada x milisegundos, definido pelo timer, envie uma mensagem para os clientes
     if(webSocketTimer.CheckTime()){
         char data[1400]; // Cria um buffer de caracteres
+        car.battery_voltage = (float)analogRead(BATTERY_PIN)/73.5f; // Atualiza o valor da bateria
         size_t len = serializeJson(carData(), data); // Usa o buffer para escrever o JSON
         ws.textAll(data, len);  // Envia esse buffer no WS para todos os clientes
+    }
+
+    if(car.battery_voltage < BATTERY_ALERT_VOLTAGE){
+        batteryAlert = false;
+    }else if(car.battery_voltage < BATTERY_ALERT_VOLTAGE  && !batteryAlert){
+        sendCommand(COMMAND_BUZZER_SETSTATE, BUZZER_BATTERY_ALERT);
+        batteryAlert = true;
+    }
+    
+    if(car.battery_voltage > BATTERY_ALERT_VOLTAGE && batteryAlert){
+        sendCommand(COMMAND_BUZZER_SETSTATE, BUZZER_NONE);
+        batteryAlert = false;
     }
 
 }

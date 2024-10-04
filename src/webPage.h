@@ -3,7 +3,6 @@
 // HTML web page
 const char index_html[] PROGMEM = R"rawliteral(
 
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -73,8 +72,8 @@ p {
 				<button style="width: 100%;" id="input_motorleft_sendbutton">send</button>
 			</div>
 			<div style="text-align:center">
-				<p style="margin:0px" id="indicator_motorleft_ki">Kp: 0.00</p>
-				<p style="margin:0px" id="indicator_motorleft_kp">Ki: 0.00</p>
+				<p style="margin:0px" id="indicator_motorleft_kp">Kp: 0.00</p>
+				<p style="margin:0px" id="indicator_motorleft_ki">Ki: 0.00</p>
 				<p style="margin:0px" id="indicator_motorleft_kd">Kd: 0.00</p>
 			</div>
 		</div>
@@ -178,7 +177,7 @@ p {
             <p style="margin: 5px; margin-bottom:0px">Update Frequency:</p>
             <p id="indicator_update_frequency" style="margin: 5px; margin-top:0px">10.0 Hz</p>
             <p id="indicator_toolate" style="margin: 5px;"></p>
-            
+            <p id="indicator_lowbattery" style="margin: 5px; color: red"></p>
         </div>
     </div>
 </div>
@@ -248,6 +247,11 @@ p {
         if(latency < 500){
             latency_low = true;
         }  
+		if(data.battery.voltage < 9.3){
+            document.getElementById("indicator_lowbattery").innerText = "BATTERY LOW!!!";
+        } else {
+            document.getElementById("indicator_lowbattery").innerText = "";
+        }
         lastReading = millis;
 		updateIndicators(data);
 	}
@@ -344,6 +348,8 @@ p {
 	
 </script>
 </html>
+
+
 
 
 

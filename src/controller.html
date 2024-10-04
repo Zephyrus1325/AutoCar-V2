@@ -110,7 +110,7 @@ p {
 				<input type="text" id="input_motorright_ki" style="width: 40px; text-align: center; margin-left: 10px;">
 				<label>Kd</label>
 				<input type="text" id="input_motorright_kd" style="width: 40px; text-align: center; margin-left: 6.5px;"> 
-				<button style="width: 100%;">send</button>
+				<button id="input_motorright_sendbutton" style="width: 100%;">send</button>
 			</div>
 			<div style="text-align:center">
 				<p id="indicator_motorright_kp"style="margin:0px">Kp: 0.00</p>
@@ -159,7 +159,7 @@ p {
 			<p id="indicator_imu_roll" style="margin:0px; margin-left: 5px;">Roll: 0.00 deg</p>
             <p id="indicator_imu_heading" style="margin:0px; margin-left: 5px;">Heading: 360 deg</p>
             <p id="indicator_imu_temperature" style="margin:0px; margin-left: 5px;">Temperature: 25C</p>
-            <p id="indicator_imu_pressure" style="margin:0px; margin-left: 5px;">Pressure: 1060 mmHg</p>
+            <p id="indicator_imu_pressure" style="margin:0px; margin-left: 5px;">Pressure: 101360 Pa</p>
 		</div>
 	</div>
     <div class="indicator">
@@ -245,6 +245,22 @@ p {
         lastReading = millis;
 		updateIndicators(data);
 	}
+
+	document.getElementById("input_motorleft_sendbutton").addEventListener("click", e =>{
+		websocket.send(JSON.stringify({"toChange" : "leftSetpoint", "changeTo" : document.getElementById("input_motorleft_setpoint").value}));
+		websocket.send(JSON.stringify({"toChange" : "leftKp", "changeTo" : document.getElementById("input_motorleft_kp").value}));
+		websocket.send(JSON.stringify({"toChange" : "leftKi", "changeTo" : document.getElementById("input_motorleft_ki").value}));
+		websocket.send(JSON.stringify({"toChange" : "leftKd", "changeTo" : document.getElementById("input_motorleft_kd").value}));
+		websocket.send(JSON.stringify({"toChange" : "leftThrottle", "changeTo" : document.getElementById("input_motorleft_throttle").value}));
+	});
+
+	document.getElementById("input_motorright_sendbutton").addEventListener("click", e =>{
+		websocket.send(JSON.stringify({"toChange" : "rightSetpoint", "changeTo" : document.getElementById("input_motorright_setpoint").value}));
+		websocket.send(JSON.stringify({"toChange" : "rightKp", "changeTo" : document.getElementById("input_motorright_kp").value}));
+		websocket.send(JSON.stringify({"toChange" : "rightKi", "changeTo" : document.getElementById("input_motorright_ki").value}));
+		websocket.send(JSON.stringify({"toChange" : "rightKd", "changeTo" : document.getElementById("input_motorright_kd").value}));
+		websocket.send(JSON.stringify({"toChange" : "rightThrottle", "changeTo" : document.getElementById("input_motorright_throttle").value}));
+	});
 	
     document.getElementById("input_motorleft_closedloop_button").addEventListener("click", e =>{
         websocket.send(JSON.stringify({"toChange" : "leftMode", "changeTo" : "0"}));
@@ -288,9 +304,9 @@ p {
         document.getElementById("indicator_motorright_actspeed").innerText = data.motor.right.speed.toFixed(1) + " cm/s";
         document.getElementById("indicator_motorright_setpoint").innerText = data.motor.right.setpoint.toFixed(1) + " cm/s";
         document.getElementById("indicator_motorright_throttle").innerText = data.motor.right.throttle;
-        document.getElementById("indicator_motorright_kp").innerText = "Kp: " + data.motor.left.kp.toFixed(2);
-        document.getElementById("indicator_motorright_ki").innerText = "Ki: " + data.motor.left.ki.toFixed(2);
-        document.getElementById("indicator_motorright_kd").innerText = "Kd: " + data.motor.left.kd.toFixed(2);
+        document.getElementById("indicator_motorright_kp").innerText = "Kp: " + data.motor.right.kp.toFixed(2);
+        document.getElementById("indicator_motorright_ki").innerText = "Ki: " + data.motor.right.ki.toFixed(2);
+        document.getElementById("indicator_motorright_kd").innerText = "Kd: " + data.motor.right.kd.toFixed(2);
         document.getElementById("input_motorright_closedloop_button").style.backgroundColor = data.motor.right.mode == 0 ? "#00FF00" : "#101010";
         document.getElementById("input_motorright_openloop_button").style.backgroundColor = data.motor.right.mode == 0 ? "#101010" : "#00FF00";
         document.getElementById("indicator_ultrassound_front").innerText = "Front: " + data.ultrassound.front + " cm";
@@ -310,10 +326,10 @@ p {
         document.getElementById("indicator_imu_gyroy").innerText = "Gyro: " + data.imu.gyro.treated.y.toFixed(1) + " rad/s";
         document.getElementById("indicator_imu_gyroz").innerText = "Gyro: " + data.imu.gyro.treated.z.toFixed(1) + " rad/s";
         document.getElementById("indicator_imu_temperature").innerText = "Temperature: " + data.imu.baro.treated.temperature.toFixed(1) + " C";
-        document.getElementById("indicator_imu_pressure").innerText = "Pressure: " + data.imu.baro.treated.pressure.toFixed(1) + " mmHg";
+        document.getElementById("indicator_imu_pressure").innerText = "Pressure: " + data.imu.baro.treated.pressure.toFixed(0) + " Pa";
         document.getElementById("indicator_imu_pitch").innerText = "Pitch: " + data.navigation.position.pitch.toFixed(1) + " deg";
         document.getElementById("indicator_imu_roll").innerText = "Roll: " +  data.navigation.position.roll.toFixed(1) + " deg";
-        document.getElementById("indicator_imu_heading").innerText = "Heading: " + data.navigation.position.heading + " deg";
+        document.getElementById("indicator_imu_heading").innerText = "Heading: " + data.navigation.position.heading.toFixed(0) + " deg";
         document.getElementById("indicator_battery_voltage").innerText = data.battery.voltage.toFixed(1) + " V";
         document.getElementById("indicator_latency").innerText ="Latency: " + latency + " ms";
         document.getElementById("indicator_update_frequency").innerText = (1000/latency).toFixed(1) + " Hz";

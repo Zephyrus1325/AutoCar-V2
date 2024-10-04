@@ -8,6 +8,9 @@
 #include "comms.h"
 #include "defines.h"
 
+// Descomente essa linha para habilitar debug de tudo
+#define DEBUG
+
 AsyncWebServer server(80); // Declara um servidor e um websocket
 AsyncWebSocket ws("/ws");
 
@@ -15,8 +18,8 @@ AsyncWebSocket ws("/ws");
 timer webSocketTimer{0, 100, true, true, true};
 
 // Credenciais de Rede 
-const char* ssid = "MarcoFilho";
-const char* password = "MarcoFilho12";
+const char* ssid = "LabMaker_Teste";
+const char* password = "LabMaker";
 
 // Variáveis do carrinho, estão de exemplo aqui
 CarData car;
@@ -48,31 +51,38 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
         const char *changeTo = json["changeTo"];
         String value = changeTo;
         
+        #ifdef DEBUG
+            Serial.print("Command Received: ");
+            Serial.print(toChange);
+            Serial.print(" Value: ");
+            Serial.println(value);
+        #endif
+
         // Muda as variaveis de acordo com o que precisa ser alterado
         if (strcmp(toChange, "leftMode") == 0){
             sendCommand(COMMAND_MOTOR_LEFT_SETMODE, value.toInt());
         } else if (strcmp(toChange, "leftSetpoint") == 0){
-            sendCommand(COMMAND_MOTOR_LEFT_SETSPEED, value.toFloat());
+            sendCommand(COMMAND_MOTOR_LEFT_SETSPEED, (int)(value.toFloat() * FLOAT_MULTIPLIER));
         } else if (strcmp(toChange, "leftThrottle") == 0){
             sendCommand(COMMAND_MOTOR_LEFT_SETTHROTTLE, value.toInt());
         } else if (strcmp(toChange, "leftKp") == 0){
-
+            sendCommand(COMMAND_MOTOR_LEFT_SETKP, value.toFloat());
         } else if (strcmp(toChange, "leftKi") == 0){
-
+            sendCommand(COMMAND_MOTOR_LEFT_SETKI, (int)(value.toFloat() * FLOAT_MULTIPLIER));
         } else if (strcmp(toChange, "leftKd") == 0){
-
+            sendCommand(COMMAND_MOTOR_LEFT_SETKD, (int)(value.toFloat() * FLOAT_MULTIPLIER));
         } else if (strcmp(toChange, "rightMode") == 0){
             sendCommand(COMMAND_MOTOR_RIGHT_SETMODE, value.toInt());
         }else if (strcmp(toChange, "rightSetpoint") == 0){
-            sendCommand(COMMAND_MOTOR_RIGHT_SETSPEED, value.toFloat());
+            sendCommand(COMMAND_MOTOR_RIGHT_SETSPEED, (int)(value.toFloat() * FLOAT_MULTIPLIER));
         } else if (strcmp(toChange, "rightThrottle") == 0){
             sendCommand(COMMAND_MOTOR_RIGHT_SETTHROTTLE, value.toInt());
         } else if (strcmp(toChange, "rightKp") == 0){
-
+            sendCommand(COMMAND_MOTOR_RIGHT_SETKP, (int)(value.toFloat() * FLOAT_MULTIPLIER));
         } else if (strcmp(toChange, "rightKi") == 0){
-
+            sendCommand(COMMAND_MOTOR_RIGHT_SETKI, (int)(value.toFloat() * FLOAT_MULTIPLIER));
         } else if (strcmp(toChange, "rightKd") == 0){
-
+            sendCommand(COMMAND_MOTOR_RIGHT_SETKD, (int)(value.toFloat() * FLOAT_MULTIPLIER));
         } else if (strcmp(toChange, "navigationMode") == 0){
             navigationMode = value.toInt();
             sendCommand(COMMAND_NAVIGATION_SETMODE, navigationMode);

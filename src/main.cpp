@@ -212,6 +212,11 @@ void setup() {
     pinMode(BATTERY_PIN, INPUT);
 }
 void loop() {
+    for(int i = 0; i < 256; i++){
+        for(int j = 0; j < 256; j++){
+            medidas[j][i] = i * j;
+        }
+    }
     // Checar se há mensagem de update nova
     receiveData(&car);
     // A cada x milisegundos, definido pelo timer, envie uma mensagem para os clientes

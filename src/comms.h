@@ -1,5 +1,4 @@
-#ifndef COMMS_H
-#define COMMS_H
+#pragma once
 
 //#define DEBUG
 
@@ -114,5 +113,3 @@ void receiveData(CarData* data){
     }
     #endif
 }
-
-#endif

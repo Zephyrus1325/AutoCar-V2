@@ -1,5 +1,4 @@
-#ifndef DEFINES_H
-#define DEFINES_H
+#pragma once
 
 #define BATTERY_MAX_VOLTAGE 11.1f
 #define BATTERY_ALERT_VOLTAGE 9.3f
@@ -33,4 +32,5 @@
 #define BUZZER_BATTERY_ALERT 2
 #define BUZZER_BATTERY_CRITICAL 3
 
-#endif
+#define NAVIGATION_CHUNK_WIDTH 2048     // 2048 em X, 2048 em Y
+#define NAVIGATION_CHUNK_SIZE NAVIGATION_CHUNK_WIDTH*NAVIGATION_CHUNK_WIDTH // Tamanho de chunk: 4MB | total de chunks, 1024

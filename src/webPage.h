@@ -127,7 +127,6 @@ p {
 			<button  id="input_motorright_closedloop_button" style="width: 45%; height: 50px; margin: auto;">CLOSED LOOP</button>
 			<button  id="input_motorright_openloop_button" style="width: 45%; height: 50px; margin: auto;">OPEN LOOP</button>
 		</div>
-		
 	</div>
 	<div class="indicator">
 		<div style="text-align: center;">
@@ -157,9 +156,9 @@ p {
 			<p id="indicator_imu_accelx" style="margin:0px; margin-left: 5px;">AccelX: 0.00 m/s2</p>
 			<p id="indicator_imu_accely" style="margin:0px; margin-left: 5px;">AccelY: 0.00 m/s2</p>
 			<p id="indicator_imu_accelz" style="margin:0px; margin-left: 5px;">AccelZ: 0.00 m/s2</p>
-			<p id="indicator_imu_gyrox" style="margin:0px; margin-left: 5px;">GyroX: 0.00 rad/s</p>
-			<p id="indicator_imu_gyroy" style="margin:0px; margin-left: 5px;">GyroY: 0.00 rad/s</p>
-			<p id="indicator_imu_gyroz" style="margin:0px; margin-left: 5px;">GyroZ: 0.00 rad/s</p>
+			<p id="indicator_imu_gyrox" style="margin:0px; margin-left: 5px;">GyroX: 0.00 deg/s</p>
+			<p id="indicator_imu_gyroy" style="margin:0px; margin-left: 5px;">GyroY: 0.00 deg/s</p>
+			<p id="indicator_imu_gyroz" style="margin:0px; margin-left: 5px;">GyroZ: 0.00 deg/s</p>
             <p id="indicator_imu_temperature" style="margin:0px; margin-left: 5px;">Temperature: 25C</p>
             <p id="indicator_imu_pressure" style="margin:0px; margin-left: 5px;">Pressure: 101360 Pa</p>
 		</div>
@@ -172,6 +171,9 @@ p {
             <p id="indicator_navigation_position_x" style="margin:0px; margin-left: 5px;">PosX: 0 cm</p>
 			<p id="indicator_navigation_position_y" style="margin:0px; margin-left: 5px;">PosY: 0 cm</p>
 			<p id="indicator_navigation_position_z" style="margin:0px; margin-left: 5px;">PosZ: 0 cm</p>
+			<p id="indicator_navigation_waypoint_x" style="margin:0px; margin-left: 5px;">PosX: 0 cm</p>
+			<p id="indicator_navigation_waypoint_y" style="margin:0px; margin-left: 5px;">PosY: 0 cm</p>
+			<p id="indicator_navigation_waypoint_z" style="margin:0px; margin-left: 5px;">PosZ: 0 cm</p>
 			<p id="indicator_imu_pitch" style="margin:0px; margin-left: 5px;">Pitch: 0.00 deg</p>
 			<p id="indicator_imu_roll" style="margin:0px; margin-left: 5px;">Roll: 0.00 deg</p>
             <p id="indicator_imu_heading" style="margin:0px; margin-left: 5px;">Heading: 360 deg</p>
@@ -345,9 +347,9 @@ p {
         document.getElementById("indicator_imu_accelx").innerText = "AccelX: " + data.imu.acc.treated.x.toFixed(1) + " m/s2";
         document.getElementById("indicator_imu_accely").innerText = "AccelY: " + data.imu.acc.treated.y.toFixed(1) + " m/s2";
         document.getElementById("indicator_imu_accelz").innerText = "AccelZ: " + data.imu.acc.treated.z.toFixed(1) + " m/s2";
-        document.getElementById("indicator_imu_gyrox").innerText = "GyroX: " + data.imu.gyro.treated.x.toFixed(1) + " rad/s";
-        document.getElementById("indicator_imu_gyroy").innerText = "GyroY: " + data.imu.gyro.treated.y.toFixed(1) + " rad/s";
-        document.getElementById("indicator_imu_gyroz").innerText = "GyroZ: " + data.imu.gyro.treated.z.toFixed(1) + " rad/s";
+        document.getElementById("indicator_imu_gyrox").innerText = "GyroX: " + data.imu.gyro.treated.x.toFixed(1) + " deg/s";
+        document.getElementById("indicator_imu_gyroy").innerText = "GyroY: " + data.imu.gyro.treated.y.toFixed(1) + " deg/s";
+        document.getElementById("indicator_imu_gyroz").innerText = "GyroZ: " + data.imu.gyro.treated.z.toFixed(1) + " deg/s";
         document.getElementById("indicator_imu_temperature").innerText = "Temperature: " + data.imu.baro.treated.temperature.toFixed(1) + " C";
         document.getElementById("indicator_imu_pressure").innerText = "Pressure: " + data.imu.baro.treated.pressure.toFixed(0) + " Pa";
         document.getElementById("indicator_imu_pitch").innerText = "Pitch: " + data.navigation.position.pitch.toFixed(1) + " deg";
@@ -356,6 +358,9 @@ p {
 		document.getElementById("indicator_navigation_position_x").innerText = "PosX: " + data.navigation.position.x.toFixed(0) + " cm";
         document.getElementById("indicator_navigation_position_y").innerText = "PosY: " + data.navigation.position.y.toFixed(0) + " cm";
         document.getElementById("indicator_navigation_position_z").innerText = "PosZ: " + data.navigation.position.z.toFixed(0) + " cm";
+		document.getElementById("indicator_navigation_waypoint_x").innerText = "DestX: " + data.navigation.destination.x.toFixed(0) + " cm";
+        document.getElementById("indicator_navigation_waypoint_y").innerText = "DestY: " + data.navigation.destination.y.toFixed(0) + " cm";
+        document.getElementById("indicator_navigation_waypoint_z").innerText = "DestZ: " + data.navigation.destination.z.toFixed(0) + " cm";
         document.getElementById("indicator_battery_voltage").innerText = "Voltage:" + data.battery.voltage.toFixed(1) + " V";
         document.getElementById("indicator_latency").innerText ="Latency: " + latency + " ms";
         document.getElementById("indicator_update_frequency").innerText = (1000/latency).toFixed(1) + " Hz";

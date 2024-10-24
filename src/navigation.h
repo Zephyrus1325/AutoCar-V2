@@ -13,3 +13,4 @@
 // Criar classe de navegação aqui
 
 // Usar A*?
+// Transformada de distancia Euclidiana (Euclidean distance Transform)

@@ -17,12 +17,13 @@ AsyncWebSocket ws("/ws");
 // Timers
 timer webSocketTimer{0, 100, true, true, true};
 
-// Credenciais de Rede 
-//const char* ssid = "AutoCar_V2";
-//const char* password = "vroomvroom";
+// Credenciais de Rede Locais
+const char* ssid = "AutoCar_V2";
+const char* password = "vroomvroom";
 
-const char* ssid = "LabMaker_Teste";
-const char* password = "LabMaker";
+// Credenciais de Rede do LabMaker
+//const char* ssid = "LabMaker_Teste";
+//const char* password = "LabMaker";
 
 // Variáveis do carrinho, estão de exemplo aqui
 CarData car;
@@ -70,7 +71,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
         } else if (strcmp(toChange, "leftThrottle") == 0){
             sendCommand(COMMAND_MOTOR_LEFT_SETTHROTTLE, value.toInt());
         } else if (strcmp(toChange, "leftKp") == 0){
-            sendCommand(COMMAND_MOTOR_LEFT_SETKP, value.toFloat());
+            sendCommand(COMMAND_MOTOR_LEFT_SETKP, (int)(value.toFloat() * FLOAT_MULTIPLIER));
         } else if (strcmp(toChange, "leftKi") == 0){
             sendCommand(COMMAND_MOTOR_LEFT_SETKI, (int)(value.toFloat() * FLOAT_MULTIPLIER));
         } else if (strcmp(toChange, "leftKd") == 0){
@@ -189,20 +190,21 @@ JsonDocument carData(){
 void setup() {
     Serial.begin(115200);
     Serial2.begin(115200, SERIAL_8N1, 16, 17);
-    WiFi.mode(WIFI_STA);    // Inicia o ESP como um STATION (cliente de uma rede)
-    WiFi.begin(ssid, password); // Inicia o WIFI com as credenciais de rede
-    //WiFi.softAP(ssid, password); // Inicia o WIFI com as credenciais de rede
-    // Se a conexão falhar, desista!
-    if (WiFi.waitForConnectResult() != WL_CONNECTED) {
-        Serial.println("WiFi Failed!");
-        return;
-    }
+    WiFi.mode(WIFI_AP);       // Inicia o ESP como um ACCESS POINT (ponto de acesso)
+    //WiFi.mode(WIFI_STA);    // Inicia o ESP como um STATION (cliente de uma rede)
+    //WiFi.begin(ssid, password); // Inicia o WIFI com as credenciais de rede
+    WiFi.softAP(ssid, password); // Inicia o WIFI com as credenciais de rede
+    // Se a conexão com o roteador falhar, desista!
+    //if (WiFi.waitForConnectResult() != WL_CONNECTED) {
+    //    Serial.println("WiFi Failed!");
+    //    return;
+    //}
     WiFi.setSleep(false); // Desativar modo de economia de energia com o Wifi (adeus latencia!)
     WiFi.setTxPower(WIFI_POWER_19_5dBm);
-    Serial.println();
-    Serial.print("IP Address: ");
-    Serial.println(WiFi.localIP()); // Printa o IP no serial para saber onde caralhos estou
-    //Serial.println(WiFi.softAPIP());
+    //Serial.println();
+    //Serial.print("IP Address: ");
+    //Serial.println(WiFi.localIP()); // Printa o IP no serial para saber onde caralhos estou
+    Serial.println(WiFi.softAPIP());
 
     ws.onEvent(onEvent);    // Define qual função deve rodar em um evento do WS
     server.addHandler(&ws); // Define qual é o handler de WS do servidor

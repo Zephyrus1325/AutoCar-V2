@@ -8,6 +8,9 @@
 #include "comms.h"
 #include "defines.h"
 
+//#include "sdcard.h"
+#include "navigation.h"
+
 // Descomente essa linha para habilitar debug de tudo
 #define DEBUG
 
@@ -16,18 +19,21 @@ AsyncWebSocket ws("/ws");
 
 // Timers
 timer webSocketTimer{0, 100, true, true, true};
+timer mapDataTimer{0, 50, true, true, true};
 
 // Credenciais de Rede Locais
-const char* ssid = "AutoCar_V2";
-const char* password = "vroomvroom";
+//const char* ssid = "AutoCar_V2";
+//const char* password = "vroomvroom";
 
 // Credenciais de Rede do LabMaker
-//const char* ssid = "LabMaker_Teste";
-//const char* password = "LabMaker";
+const char* ssid = "LabMaker_Teste";
+const char* password = "LabMaker";
 
 // Variáveis do carrinho, estão de exemplo aqui
 CarData car;
+Navigation nav;
 int32_t navigationMode = 0;
+int8_t chunkCounter = 0;
 bool batteryAlert = false;
 // O que retornar em caso de não encontrar o servidor
 void notFound(AsyncWebServerRequest *request) {
@@ -125,6 +131,7 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
 // Cria um JSON com todos os dados do carro
 JsonDocument carData(){
     JsonDocument data;
+    data["type"] = "carInfo";
     data["battery"]["voltage"] = (float) car.battery_voltage / FLOAT_MULTIPLIER;
     data["battery"]["percentage"] = car.battery_percentage;
     data["ultrassound"]["front"] = car.ultrassound_reading_front;
@@ -189,22 +196,28 @@ JsonDocument carData(){
 
 void setup() {
     Serial.begin(115200);
+    Serial.println(
+    "|             AUTOCAR V2            |\n"
+    "|        BY: MARCO AURELIO          |\n"
+    "|                2024               |\n"
+    "|                                   |");
+    //SD_begin();
     Serial2.begin(115200, SERIAL_8N1, 16, 17);
-    WiFi.mode(WIFI_AP);       // Inicia o ESP como um ACCESS POINT (ponto de acesso)
-    //WiFi.mode(WIFI_STA);    // Inicia o ESP como um STATION (cliente de uma rede)
-    //WiFi.begin(ssid, password); // Inicia o WIFI com as credenciais de rede
-    WiFi.softAP(ssid, password); // Inicia o WIFI com as credenciais de rede
+    //WiFi.mode(WIFI_AP);       // Inicia o ESP como um ACCESS POINT (ponto de acesso)
+    WiFi.mode(WIFI_STA);    // Inicia o ESP como um STATION (cliente de uma rede)
+    WiFi.begin(ssid, password); // Inicia o WIFI com as credenciais de rede
+    //WiFi.softAP(ssid, password); // Inicia o WIFI com as credenciais de rede
     // Se a conexão com o roteador falhar, desista!
-    //if (WiFi.waitForConnectResult() != WL_CONNECTED) {
-    //    Serial.println("WiFi Failed!");
-    //    return;
-    //}
+    if (WiFi.waitForConnectResult() != WL_CONNECTED) {
+        Serial.println("WiFi Failed!");
+        return;
+    }
     WiFi.setSleep(false); // Desativar modo de economia de energia com o Wifi (adeus latencia!)
     WiFi.setTxPower(WIFI_POWER_19_5dBm);
-    //Serial.println();
-    //Serial.print("IP Address: ");
-    //Serial.println(WiFi.localIP()); // Printa o IP no serial para saber onde caralhos estou
-    Serial.println(WiFi.softAPIP());
+    Serial.println();
+    Serial.print("IP Address: ");
+    Serial.println(WiFi.localIP()); // Printa o IP no serial para saber onde caralhos estou
+    //Serial.println(WiFi.softAPIP());
 
     ws.onEvent(onEvent);    // Define qual função deve rodar em um evento do WS
     server.addHandler(&ws); // Define qual é o handler de WS do servidor
@@ -221,12 +234,21 @@ void setup() {
 void loop() {
     // Checar se há mensagem de update nova
     receiveData(&car);
+    nav.update(car);
     // A cada x milisegundos, definido pelo timer, envie uma mensagem para os clientes
     if(webSocketTimer.CheckTime()){
         char data[1400]; // Cria um buffer de caracteres
         car.battery_voltage = (analogRead(BATTERY_PIN)/73.5f) * FLOAT_MULTIPLIER; // Atualiza o valor da bateria
         size_t len = serializeJson(carData(), data); // Usa o buffer para escrever o JSON
         ws.textAll(data, len);  // Envia esse buffer no WS para todos os clientes
+
+    }
+
+    if(mapDataTimer.CheckTime()){
+        char data[2000]; // Cria um buffer de caracteres
+        size_t len = serializeJson(nav.getChunkData(chunkCounter), data); // Escreve o JSON
+        ws.textAll(data, len);  // Manda os dados de mapa      
+        chunkCounter = ++chunkCounter % CHUNK_PARTS;    // Soma 1 pro chunkCounter, e reseta se passar de chunk_parts
     }
 
     if(car.battery_voltage < BATTERY_PROGRAMMING_VOLTAGE){

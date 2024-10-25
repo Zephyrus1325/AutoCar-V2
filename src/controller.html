@@ -49,7 +49,7 @@ div {
             <p id="indicator_latency" style="width: 10%; text-align: right;">100 ms</p>
             <p id="indicator_battery_percentage" style="width: 10%; text-align: right; margin-right: 10px;">100%</p>
         </div>
-        <canvas width="820px"; height="480px" style="width: auto; height: auto; background-color: #757575; margin: 10px;"></canvas>
+        <canvas id="indicator_map" width="820px"; height="480px" style="width: auto; height: auto; background-color: #757575; margin: 10px;"></canvas>
     </div>
     <div>
 
@@ -250,15 +250,19 @@ div {
         if(millis - lastReading > 0){
             latency = millis - lastReading;
         }
-        if(latency < 500){
-            latency_low = true;
-        }  
-		if(data.battery.voltage < 9.3){
-            document.getElementById("indicator_status").innerText = "Battery Low";
-            problem_flag = true;
-        }
-        lastReading = millis;
-		updateIndicators(data);
+        if(data.type == "carInfo"){
+            if(latency < 500){
+                latency_low = true;
+            }  
+		    if(data.battery.voltage < 9.3){
+                document.getElementById("indicator_status").innerText = "Battery Low";
+                problem_flag = true;
+            }
+            lastReading = millis;
+            updateIndicators(data);
+        } else if(data.type == "chunkData"){
+            updateCanvas(data);
+        }		
 	}
 
 	document.getElementById("input_motor_left_sendbutton").addEventListener("click", e =>{
@@ -359,7 +363,35 @@ div {
         document.getElementById("indicator_latency").innerText ="Latency: " + latency + " ms";
         document.getElementById("indicator_update_frequency").innerText = (1000/latency).toFixed(1) + " Hz";
 	}
-	
+
+    function updateCanvas(data){
+        var canvas = document.getElementById("indicator_map");
+        const c = canvas.getContext('2d');
+        c.clearRect(0, 0, canvas.width, canvas.height); // Reseta o canvas
+        
+        var width = canvas.width;
+        var height = canvas.height;
+        var squareSize = 10;    // tamanho de cada "pixel" posicional
+        for(var i = 0; i < data["chunkData"].length; i++){
+            var coordinates = indexToCoordinates(i, data["chunkData"].length);
+            var x = coordinates[0];
+            var y = coordinates[1];
+            c.fillRect(x * squareSize, y * squareSize, x * squareSize + squareSize, y * squareSize + squareSize);
+        }
+        
+    }
+
+    // ---------------------------------------------------------------------
+	// Função de suporte para o canvas
+	// ---------------------------------------------------------------------
+
+    function indexToCoordinates(index, length){
+        var sides = sqrt(length);
+        var x = index % sides;
+        var y = index / sides;
+        return [x, y];
+    }
+
 	
 </script>
 </html>

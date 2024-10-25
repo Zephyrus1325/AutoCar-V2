@@ -34,5 +34,8 @@
 #define BUZZER_BATTERY_ALERT 2
 #define BUZZER_BATTERY_CRITICAL 3
 
-#define NAVIGATION_CHUNK_WIDTH 2048     // 2048 em X, 2048 em Y
-#define NAVIGATION_CHUNK_SIZE NAVIGATION_CHUNK_WIDTH*NAVIGATION_CHUNK_WIDTH // Tamanho de chunk: 4MB | total de chunks, 1024
+#define NAVIGATION_UNIT_PRECISION 10    // Quantos Cm são equivalentes a 1 unidade de navegação 
+#define NAVIGATION_CHUNK_LENGTH 200    // Tamanho da lateral de um chunk, em unidades de navegação
+#define NAVIGATION_SIDE_CHUNKS 1      // Total de chunks em 1 lado da região mapeavel
+
+#define CHUNK_PARTS 40  // Define em quantas partes um chunk vai ser dividido para ser enviado

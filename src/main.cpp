@@ -19,7 +19,7 @@ AsyncWebSocket ws("/ws");
 
 // Timers
 timer webSocketTimer{0, 100, true, true, true};
-timer mapDataTimer{0, 50, true, true, true};
+timer mapDataTimer{0, 10, true, true, true};
 
 // Credenciais de Rede Locais
 //const char* ssid = "AutoCar_V2";
@@ -245,7 +245,7 @@ void loop() {
     }
 
     if(mapDataTimer.CheckTime()){
-        char data[2000]; // Cria um buffer de caracteres
+        char data[2500]; // Cria um buffer de caracteres
         size_t len = serializeJson(nav.getChunkData(chunkCounter), data); // Escreve o JSON
         ws.textAll(data, len);  // Manda os dados de mapa      
         chunkCounter = ++chunkCounter % CHUNK_PARTS;    // Soma 1 pro chunkCounter, e reseta se passar de chunk_parts

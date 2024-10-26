@@ -250,7 +250,6 @@ div {
 	// Function that receives the message from the ESP32 with the readings
 	function onMessage(event) {
 		data = JSON.parse(event.data);
-        console.log(data);
         now = new Date();
         millis = now.getMilliseconds();
         if(millis - lastReading > 0){
@@ -267,6 +266,7 @@ div {
             lastReading = millis;
             updateIndicators(data);
         } else if(data.type == "chunkData"){
+            console.log(data)
             updateCanvas(data);
         }		
 	}
@@ -373,16 +373,20 @@ div {
     function updateCanvas(data){
         var canvas = document.getElementById("indicator_map");
         const c = canvas.getContext('2d');
-        c.clearRect(0, 0, canvas.width, canvas.height); // Reseta o canvas
+        //c.clearRect(0, 0, canvas.width, canvas.height); // Reseta o canvas
         
         var width = canvas.width;
         var height = canvas.height;
-        var squareSize = 10;    // tamanho de cada "pixel" posicional
+        var squareSize = 1;    // tamanho de cada "pixel" posicional
         for(var i = 0; i < data["chunkData"].length; i++){
-            var coordinates = indexToCoordinates(i, data["chunkData"].length);
+            var coordinates = indexToCoordinates(i, data["size"]);
             var x = coordinates[0];
             var y = coordinates[1];
-            c.fillRect(x * squareSize, y * squareSize, x * squareSize + squareSize, y * squareSize + squareSize);
+            if(data["chunkData"][i] == 5){
+                c.fillStyle = "white";
+                c.fillRect(x * squareSize, y * squareSize, x * squareSize + squareSize, y * squareSize + squareSize);
+            }
+            
         }
         
     }
@@ -392,7 +396,7 @@ div {
 	// ---------------------------------------------------------------------
 
     function indexToCoordinates(index, length){
-        var sides = sqrt(length);
+        var sides = Math.sqrt(length);
         var x = index % sides;
         var y = index / sides;
         return [x, y];

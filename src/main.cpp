@@ -19,15 +19,18 @@ AsyncWebSocket ws("/ws");
 
 // Timers
 timer webSocketTimer{0, 100, true, true, true};
-timer mapDataTimer{0, 10, true, true, true};
+timer mapDataTimer{10, 100, true, true, true};
 
 // Credenciais de Rede Locais
 //const char* ssid = "AutoCar_V2";
 //const char* password = "vroomvroom";
 
 // Credenciais de Rede do LabMaker
-const char* ssid = "LabMaker_Teste";
-const char* password = "LabMaker";
+//const char* ssid = "LabMaker_Teste";
+//const char* password = "LabMaker";
+
+const char* ssid = "MarcoFilho";
+const char* password = "MarcoFilho12";
 
 // Variáveis do carrinho, estão de exemplo aqui
 CarData car;
@@ -241,12 +244,28 @@ void loop() {
         car.battery_voltage = (analogRead(BATTERY_PIN)/73.5f) * FLOAT_MULTIPLIER; // Atualiza o valor da bateria
         size_t len = serializeJson(carData(), data); // Usa o buffer para escrever o JSON
         ws.textAll(data, len);  // Envia esse buffer no WS para todos os clientes
-
+        Serial.print("F: ");
+        Serial.print(car.ultrassound_reading_front);
+        Serial.print(" FL: ");
+        Serial.print(car.ultrassound_reading_front_left);
+        Serial.print(" FR: ");
+        Serial.print(car.ultrassound_reading_front_right);
+        Serial.print(" L: ");
+        Serial.print(car.ultrassound_reading_left);
+        Serial.print(" R: ");
+        Serial.print(car.ultrassound_reading_right);
+        Serial.print(" BL: ");
+        Serial.print(car.ultrassound_reading_back_left);
+        Serial.print(" BR: ");
+        Serial.print(car.ultrassound_reading_back_right);
+        Serial.print(" B: ");
+        Serial.println(car.ultrassound_reading_back);
+           
     }
 
     if(mapDataTimer.CheckTime()){
         char data[2500]; // Cria um buffer de caracteres
-        size_t len = serializeJson(nav.getChunkData(chunkCounter), data); // Escreve o JSON
+        size_t len = serializeJson(nav.getChunkData(chunkCounter, car), data); // Escreve o JSON
         ws.textAll(data, len);  // Manda os dados de mapa      
         chunkCounter = ++chunkCounter % CHUNK_PARTS;    // Soma 1 pro chunkCounter, e reseta se passar de chunk_parts
     }

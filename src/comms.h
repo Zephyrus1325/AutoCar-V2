@@ -108,8 +108,10 @@ void receiveData(CarData* data){
         Serial.print("Received Healty Packet: ");
         Serial.println(sizeof(*data));
     } else if(packetStatus == BAD_PACKET){
-        Serial.println("Bad Packet: ");
-        Serial.println(sizeof(*data));
+        Serial.print("Bad Packet: ");
+        Serial.print(sizeof(*data));
+        Serial.print(" Struct Size: ");
+        Serial.println(sizeof(CarData));
     }
     #endif
 }

@@ -7,6 +7,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 <html>
 <head>
 <title>AutoCar V2 Inteface</title>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <style>
@@ -113,9 +114,9 @@ div {
             <div style="display: flex;">
                 <p class="motor_variable">Kd</p>
                 <p id="indicator_motor_left_kd" class="motor_variable">0.00</p>
-                <input id="input_motor_left_ki" type="number" class="motor_variable">
+                <input id="input_motor_left_kd" type="number" class="motor_variable">
                 <p id="indicator_motor_right_kd" class="motor_variable">0.00</p>
-                <input id="input_motor_right_ki" type="number" class="motor_variable">
+                <input id="input_motor_right_kd" type="number" class="motor_variable">
             </div>
             <div style="display: flex">
                 <p class="motor_variable"></p>
@@ -144,6 +145,12 @@ div {
                     <p id="indicator_navigation_position_y" class="navigation_variable" style="width: 40%">Y = -200</p>
                 </div>
                 <div style="display: flex">
+                    <p class="navigation_variable">Angles</p>
+                    <p id="indicator_imu_heading" class="navigation_variable" style="width: 26.6%">Head = 100</p>
+                    <p id="indicator_imu_pitch" class="navigation_variable" style="width: 26.6%">Pitch = -200</p>
+                    <p id="indicator_imu_roll" class="navigation_variable" style="width: 26.6%">Roll = -200</p>
+                </div>
+                <div style="display: flex">
                     <p class="navigation_variable">Dest</p>
                     <p class="navigation_variable">X = 100</p>
                     <input type="number" class="navigation_variable">
@@ -157,7 +164,7 @@ div {
                 <!-- Permite ver todos os waypoints ativos-->
                 <details>
                     <summary>
-                        Waypoints Buffer (Actual: 0) 
+                        Waypoints Buffer (Actual: 4) 
                     </summary>
                     <div style="display: flex">
                         <p class="navigation_details" style="width: 5% ">0:</p>
@@ -203,6 +210,7 @@ div {
     var lastReading = millis;
     var latency_low = true;
     var problem_flag = false;
+    var mapData = new Array(10000);
 	// Init web socket when the page loads
 	window.addEventListener('load', onload);
 
@@ -266,54 +274,56 @@ div {
             lastReading = millis;
             updateIndicators(data);
         } else if(data.type == "chunkData"){
-            console.log(data)
+            fillMapData(data);
             updateCanvas(data);
         }		
 	}
 
-	document.getElementById("input_motor_left_sendbutton").addEventListener("click", e =>{
+    document.getElementById("input_motor_left_sendpower").addEventListener("click", e =>{
 		websocket.send(JSON.stringify({"toChange" : "leftSetpoint", "changeTo" : document.getElementById("input_motor_left_setpoint").value}));
-		websocket.send(JSON.stringify({"toChange" : "leftKp", "changeTo" : document.getElementById("input_motor_left_kp").value}));
-		websocket.send(JSON.stringify({"toChange" : "leftKi", "changeTo" : document.getElementById("input_motor_left_ki").value}));
-		websocket.send(JSON.stringify({"toChange" : "leftKd", "changeTo" : document.getElementById("input_motor_left_kd").value}));
 		websocket.send(JSON.stringify({"toChange" : "leftThrottle", "changeTo" : document.getElementById("input_motor_left_throttle").value}));
 	});
 
-	document.getElementById("input_motor_right_sendbutton").addEventListener("click", e =>{
+    document.getElementById("input_motor_right_sendpower").addEventListener("click", e =>{
 		websocket.send(JSON.stringify({"toChange" : "rightSetpoint", "changeTo" : document.getElementById("input_motor_right_setpoint").value}));
+		websocket.send(JSON.stringify({"toChange" : "rightThrottle", "changeTo" : document.getElementById("input_motor_right_throttle").value}));
+	});
+
+	document.getElementById("input_motor_left_sendconstants").addEventListener("click", e =>{
+		websocket.send(JSON.stringify({"toChange" : "leftKp", "changeTo" : document.getElementById("input_motor_left_kp").value}));
+		websocket.send(JSON.stringify({"toChange" : "leftKi", "changeTo" : document.getElementById("input_motor_left_ki").value}));
+		websocket.send(JSON.stringify({"toChange" : "leftKd", "changeTo" : document.getElementById("input_motor_left_kd").value}));
+	});
+
+	document.getElementById("input_motor_right_sendconstants").addEventListener("click", e =>{
 		websocket.send(JSON.stringify({"toChange" : "rightKp", "changeTo" : document.getElementById("input_motor_right_kp").value}));
 		websocket.send(JSON.stringify({"toChange" : "rightKi", "changeTo" : document.getElementById("input_motor_right_ki").value}));
 		websocket.send(JSON.stringify({"toChange" : "rightKd", "changeTo" : document.getElementById("input_motor_right_kd").value}));
-		websocket.send(JSON.stringify({"toChange" : "rightThrottle", "changeTo" : document.getElementById("input_motor_right_throttle").value}));
 	});
 	
-    document.getElementById("input_motor_left_closedloop_button").addEventListener("click", e =>{
+    document.getElementById("input_motor_left_enablePID").addEventListener("click", e =>{
         websocket.send(JSON.stringify({"toChange" : "leftMode", "changeTo" : "0"}));
     });
 
-    document.getElementById("input_motor_left_openloop_button").addEventListener("click", e =>{
+    document.getElementById("input_motor_left_disablePID").addEventListener("click", e =>{
         websocket.send(JSON.stringify({"toChange" : "leftMode", "changeTo" : "1"}));
     });
 	
 
-    document.getElementById("input_motor_right_closedloop_button").addEventListener("click", e =>{
+    document.getElementById("input_motor_right_enablePID").addEventListener("click", e =>{
         websocket.send(JSON.stringify({"toChange" : "rightMode", "changeTo":"0"}));
     });
 
-    document.getElementById("input_motor_right_openloop_button").addEventListener("click", e =>{
+    document.getElementById("input_motor_right_disablePID").addEventListener("click", e =>{
         websocket.send(JSON.stringify({"toChange" : "rightMode", "changeTo" : "1"}));
     });
 
-    document.getElementById("input_carmode_auto").addEventListener("click", e =>{
+    document.getElementById("input_navigation_setmode_auto").addEventListener("click", e =>{
         websocket.send(JSON.stringify({"toChange" : "navigationMode", "changeTo" : "0"}));
     });
 
-    document.getElementById("input_carmode_manual").addEventListener("click", e =>{
+    document.getElementById("input_navigation_setmode_manual").addEventListener("click", e =>{
         websocket.send(JSON.stringify({"toChange" : "navigationMode", "changeTo" : "1"}));
-    });
-
-	document.getElementById("input_walk_button").addEventListener("click", e =>{
-        websocket.send(JSON.stringify({"toChange" : "walk", "changeTo" : "0"}));
     });
 	
 	
@@ -328,67 +338,75 @@ div {
         document.getElementById("indicator_motor_left_kp").innerText = "Kp: " + data.motor.left.kp.toFixed(2);
         document.getElementById("indicator_motor_left_ki").innerText = "Ki: " + data.motor.left.ki.toFixed(2);
         document.getElementById("indicator_motor_left_kd").innerText = "Kd: " + data.motor.left.kd.toFixed(2);
-        document.getElementById("input_motor_left_closedloop_button").style.backgroundColor = data.motor.left.mode == 0 ? "#00FF00" : "#101010";
-        document.getElementById("input_motor_left_openloop_button").style.backgroundColor = data.motor.left.mode == 0 ? "#101010" : "#00FF00";
+        document.getElementById("input_motor_left_enablePID").style.backgroundColor = data.motor.left.mode == 0 ? "#00FF00" : "#101010";
+        document.getElementById("input_motor_left_disablePID").style.backgroundColor = data.motor.left.mode == 0 ? "#101010" : "#00FF00";
         document.getElementById("indicator_motor_right_actspeed").innerText = data.motor.right.speed.toFixed(1) + " cm/s";
         document.getElementById("indicator_motor_right_setpoint").innerText = data.motor.right.setpoint.toFixed(1) + " cm/s";
         document.getElementById("indicator_motor_right_throttle").innerText = data.motor.right.throttle;
         document.getElementById("indicator_motor_right_kp").innerText = "Kp: " + data.motor.right.kp.toFixed(2);
         document.getElementById("indicator_motor_right_ki").innerText = "Ki: " + data.motor.right.ki.toFixed(2);
         document.getElementById("indicator_motor_right_kd").innerText = "Kd: " + data.motor.right.kd.toFixed(2);
-        document.getElementById("input_motorright_closedloop_button").style.backgroundColor = data.motor.right.mode == 0 ? "#00FF00" : "#101010";
-        document.getElementById("input_motorright_openloop_button").style.backgroundColor = data.motor.right.mode == 0 ? "#101010" : "#00FF00";
-        document.getElementById("indicator_ultrassound_front").innerText = "Front: " + data.ultrassound.front + " cm";
-        document.getElementById("indicator_ultrassound_front_left").innerText = "Front Left: " +  data.ultrassound.front_left + " cm";
-        document.getElementById("indicator_ultrassound_front_right").innerText = "Front Right: " + data.ultrassound.front_right + " cm";
-        document.getElementById("indicator_ultrassound_left").innerText = "Left: " + data.ultrassound.left + " cm";
-        document.getElementById("indicator_ultrassound_right").innerText = "Right: " + data.ultrassound.right + " cm";
-        document.getElementById("indicator_ultrassound_back").innerText = "Back: " + data.ultrassound.back + " cm";
-        document.getElementById("indicator_ultrassound_back_left").innerText = "Back Left: " + data.ultrassound.back_left + " cm";
-        document.getElementById("indicator_ultrassound_back_right").innerText = "Back Right: " + data.ultrassound.back_right + " cm";
-        document.getElementById("input_carmode_auto").style.backgroundColor = data.navigation.mode == 0 ? "#00FF00" : "#101010";
-        document.getElementById("input_carmode_manual").style.backgroundColor = data.navigation.mode == 0 ? "#101010" : "#00FF00";
-        document.getElementById("indicator_imu_accelx").innerText = "AccelX: " + data.imu.acc.treated.x.toFixed(1) + " m/s2";
-        document.getElementById("indicator_imu_accely").innerText = "AccelY: " + data.imu.acc.treated.y.toFixed(1) + " m/s2";
-        document.getElementById("indicator_imu_accelz").innerText = "AccelZ: " + data.imu.acc.treated.z.toFixed(1) + " m/s2";
-        document.getElementById("indicator_imu_gyrox").innerText = "GyroX: " + data.imu.gyro.treated.x.toFixed(1) + " deg/s";
-        document.getElementById("indicator_imu_gyroy").innerText = "GyroY: " + data.imu.gyro.treated.y.toFixed(1) + " deg/s";
-        document.getElementById("indicator_imu_gyroz").innerText = "GyroZ: " + data.imu.gyro.treated.z.toFixed(1) + " deg/s";
-        document.getElementById("indicator_imu_temperature").innerText = "Temperature: " + data.imu.baro.treated.temperature.toFixed(1) + " C";
-        document.getElementById("indicator_imu_pressure").innerText = "Pressure: " + data.imu.baro.treated.pressure.toFixed(0) + " Pa";
+        document.getElementById("input_motor_right_enablePID").style.backgroundColor = data.motor.right.mode == 0 ? "#00FF00" : "#101010";
+        document.getElementById("input_motor_right_disablePID").style.backgroundColor = data.motor.right.mode == 0 ? "#101010" : "#00FF00";
+        //document.getElementById("indicator_ultrassound_front").innerText = "Front: " + data.ultrassound.front + " cm";
+        //document.getElementById("indicator_ultrassound_front_left").innerText = "Front Left: " +  data.ultrassound.front_left + " cm";
+        //document.getElementById("indicator_ultrassound_front_right").innerText = "Front Right: " + data.ultrassound.front_right + " cm";
+        //document.getElementById("indicator_ultrassound_left").innerText = "Left: " + data.ultrassound.left + " cm";
+        //document.getElementById("indicator_ultrassound_right").innerText = "Right: " + data.ultrassound.right + " cm";
+        //document.getElementById("indicator_ultrassound_back").innerText = "Back: " + data.ultrassound.back + " cm";
+        //document.getElementById("indicator_ultrassound_back_left").innerText = "Back Left: " + data.ultrassound.back_left + " cm";
+        //document.getElementById("indicator_ultrassound_back_right").innerText = "Back Right: " + data.ultrassound.back_right + " cm";
+        document.getElementById("input_navigation_setmode_auto").style.backgroundColor = data.navigation.mode == 0 ? "#00FF00" : "#101010";
+        document.getElementById("input_navigation_setmode_manual").style.backgroundColor = data.navigation.mode == 0 ? "#101010" : "#00FF00";
+        //document.getElementById("indicator_imu_accelx").innerText = "AccelX: " + data.imu.acc.treated.x.toFixed(1) + " m/s2";
+        //document.getElementById("indicator_imu_accely").innerText = "AccelY: " + data.imu.acc.treated.y.toFixed(1) + " m/s2";
+        //document.getElementById("indicator_imu_accelz").innerText = "AccelZ: " + data.imu.acc.treated.z.toFixed(1) + " m/s2";
+        //document.getElementById("indicator_imu_gyrox").innerText = "GyroX: " + data.imu.gyro.treated.x.toFixed(1) + " deg/s";
+        //document.getElementById("indicator_imu_gyroy").innerText = "GyroY: " + data.imu.gyro.treated.y.toFixed(1) + " deg/s";
+        //document.getElementById("indicator_imu_gyroz").innerText = "GyroZ: " + data.imu.gyro.treated.z.toFixed(1) + " deg/s";
+        //document.getElementById("indicator_imu_temperature").innerText = "Temperature: " + data.imu.baro.treated.temperature.toFixed(1) + " C";
+        //document.getElementById("indicator_imu_pressure").innerText = "Pressure: " + data.imu.baro.treated.pressure.toFixed(0) + " Pa";
         document.getElementById("indicator_imu_pitch").innerText = "Pitch: " + data.navigation.position.pitch.toFixed(1) + " deg";
         document.getElementById("indicator_imu_roll").innerText = "Roll: " +  data.navigation.position.roll.toFixed(1) + " deg";
-        document.getElementById("indicator_imu_heading").innerText = "Heading: " + data.navigation.position.heading.toFixed(0) + " deg";
-		document.getElementById("indicator_navigation_position_x").innerText = "PosX: " + data.navigation.position.x.toFixed(0) + " cm";
-        document.getElementById("indicator_navigation_position_y").innerText = "PosY: " + data.navigation.position.y.toFixed(0) + " cm";
-        document.getElementById("indicator_navigation_position_z").innerText = "PosZ: " + data.navigation.position.z.toFixed(0) + " cm";
-		document.getElementById("indicator_navigation_waypoint_x").innerText = "DestX: " + data.navigation.destination.x.toFixed(0) + " cm";
-        document.getElementById("indicator_navigation_waypoint_y").innerText = "DestY: " + data.navigation.destination.y.toFixed(0) + " cm";
-        document.getElementById("indicator_navigation_waypoint_z").innerText = "DestZ: " + data.navigation.destination.z.toFixed(0) + " cm";
-        document.getElementById("indicator_battery_voltage").innerText = "Voltage:" + data.battery.voltage.toFixed(1) + " V";
-        document.getElementById("indicator_latency").innerText ="Latency: " + latency + " ms";
-        document.getElementById("indicator_update_frequency").innerText = (1000/latency).toFixed(1) + " Hz";
+        document.getElementById("indicator_imu_heading").innerText = "Head: " + data.navigation.position.heading.toFixed(0) + " deg";
+		document.getElementById("indicator_navigation_position_x").innerText = "X = " + data.navigation.position.x.toFixed(0);
+        document.getElementById("indicator_navigation_position_y").innerText = "Y = " + data.navigation.position.y.toFixed(0);
+        //document.getElementById("indicator_navigation_position_z").innerText = "PosZ: " + data.navigation.position.z.toFixed(0) + " cm";
+		//document.getElementById("indicator_navigation_waypoint_x").innerText = "DestX: " + data.navigation.destination.x.toFixed(0) + " cm";
+        //document.getElementById("indicator_navigation_waypoint_y").innerText = "DestY: " + data.navigation.destination.y.toFixed(0) + " cm";
+        //document.getElementById("indicator_navigation_waypoint_z").innerText = "DestZ: " + data.navigation.destination.z.toFixed(0) + " cm";
+        document.getElementById("indicator_battery_percentage").innerText = data.battery.voltage.toFixed(1) + " V";
+        document.getElementById("indicator_latency").innerText = latency + " ms";
+        //document.getElementById("indicator_update_frequency").innerText = (1000/latency).toFixed(1) + " Hz";
 	}
+
+    function fillMapData(data){
+        for(var i = 0; i < data.chunkData.length; i++){
+            mapData[(data.index / data.size) * data.chunkData.length + i] = data.chunkData[i];
+        }
+    }
 
     function updateCanvas(data){
         var canvas = document.getElementById("indicator_map");
         const c = canvas.getContext('2d');
-        //c.clearRect(0, 0, canvas.width, canvas.height); // Reseta o canvas
+        c.clearRect(0, 0, canvas.width, canvas.height); // Reseta o canvas
         
         var width = canvas.width;
         var height = canvas.height;
-        var squareSize = 1;    // tamanho de cada "pixel" posicional
-        for(var i = 0; i < data["chunkData"].length; i++){
-            var coordinates = indexToCoordinates(i, data["size"]);
+        var squareSize = 2;    // tamanho de cada "pixel" posicional
+
+        c.fillStyle = "red";
+        c.fillRect(data.position.x * squareSize, data.position.y * squareSize, squareSize, squareSize);
+
+        for(var i = 0; i < mapData.length; i++){
+            var coordinates = indexToCoordinates(i, 10000);
             var x = coordinates[0];
             var y = coordinates[1];
-            if(data["chunkData"][i] == 5){
+            if(mapData[i] > 0){
                 c.fillStyle = "white";
-                c.fillRect(x * squareSize, y * squareSize, x * squareSize + squareSize, y * squareSize + squareSize);
+                c.fillRect(x * squareSize, y * squareSize, squareSize, squareSize);
             }
-            
         }
-        
     }
 
     // ---------------------------------------------------------------------
@@ -401,7 +419,6 @@ div {
         var y = index / sides;
         return [x, y];
     }
-
 	
 </script>
 </html>

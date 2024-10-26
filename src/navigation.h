@@ -28,15 +28,15 @@ class Navigation {
 
     void update(CarData data){
         for(int i = 0; i < 8; i++){
-            int16_t x;
-            int16_t y;
-            getCoordinatesFromUltrassound(i, data, &x, &y);
+            uint16_t distance = getUltrassoundDistance(i, data);
+            int16_t x = (data.navigation_position_x + sin(radians((float) data.navigation_position_heading / FLOAT_MULTIPLIER)) * distance);
+            int16_t y = (data.navigation_position_x + cos(radians((float) data.navigation_position_heading / FLOAT_MULTIPLIER)) * distance);
             chunkData[coordinateToIndex(x,y)] = 1;
         }
     }
     
-    void getCoordinatesFromUltrassound(uint8_t ultrassound_index, CarData data, int16_t* x, int16_t* y){
-        float distance;
+    uint16_t getUltrassoundDistance(uint8_t ultrassound_index, CarData data){
+        uint16_t distance;
         switch(ultrassound_index){
             case 0:
                 distance = data.ultrassound_reading_front;
@@ -65,16 +65,19 @@ class Navigation {
             default:
                 distance = data.ultrassound_reading_front;
                 break;
-        };   
-        *x = data.navigation_position_x + sin(data.navigation_position_heading) * distance;
-        *y = data.navigation_position_x + cos(data.navigation_position_heading) * distance;
+        };  
+        return distance;
+        
+        
     }
 
-    JsonDocument getChunkData(uint8_t part){
+    JsonDocument getChunkData(uint8_t part, CarData car){
         JsonDocument output;
         output["type"] = "chunkData";
         output["size"] = CHUNK_PARTS;
         output["index"] = part;
+        output["position"]["x"] = car.navigation_position_x;
+        output["position"]["y"] = car.navigation_position_y; 
         uint8_t data[NAVIGATION_CHUNK_LENGTH * NAVIGATION_CHUNK_LENGTH / CHUNK_PARTS];
         for(int i = 0; i < NAVIGATION_CHUNK_LENGTH * NAVIGATION_CHUNK_LENGTH / CHUNK_PARTS; i++){
             output["chunkData"][i] = chunkData[i + NAVIGATION_CHUNK_LENGTH * NAVIGATION_CHUNK_LENGTH * part/ CHUNK_PARTS];

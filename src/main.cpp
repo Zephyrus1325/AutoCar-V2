@@ -18,19 +18,20 @@ AsyncWebServer server(80); // Declara um servidor e um websocket
 AsyncWebSocket ws("/ws");
 
 // Timers
-timer webSocketTimer{0, 100, true, true, true};
+timer webSocketTimer{0, 200, true, true, true};
 timer mapDataTimer{10, 100, true, true, true};
 
 // Credenciais de Rede Locais
-//const char* ssid = "AutoCar_V2";
-//const char* password = "vroomvroom";
-
+#ifndef PROGRAMMING
+    const char* ssid = "AutoCar_V2";
+    const char* password = "vroomvroom";
+#else
 // Credenciais de Rede do LabMaker
 //const char* ssid = "LabMaker_Teste";
 //const char* password = "LabMaker";
-
-const char* ssid = "MarcoFilho";
-const char* password = "MarcoFilho12";
+    const char* ssid = "MarcoFilho";
+    const char* password = "MarcoFilho12";
+#endif
 
 // Variáveis do carrinho, estão de exemplo aqui
 CarData car;
@@ -108,6 +109,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
 
         } else if(strcmp(toChange, "walk") == 0){
             sendCommand(COMMAND_TEMP_3_METERS, 0);
+            nav.clearChunkData();
         }
     }
 }
@@ -206,21 +208,43 @@ void setup() {
     "|                                   |");
     //SD_begin();
     Serial2.begin(115200, SERIAL_8N1, 16, 17);
-    //WiFi.mode(WIFI_AP);       // Inicia o ESP como um ACCESS POINT (ponto de acesso)
-    WiFi.mode(WIFI_STA);    // Inicia o ESP como um STATION (cliente de uma rede)
-    WiFi.begin(ssid, password); // Inicia o WIFI com as credenciais de rede
-    //WiFi.softAP(ssid, password); // Inicia o WIFI com as credenciais de rede
-    // Se a conexão com o roteador falhar, desista!
-    if (WiFi.waitForConnectResult() != WL_CONNECTED) {
-        Serial.println("WiFi Failed!");
-        return;
-    }
+
     WiFi.setSleep(false); // Desativar modo de economia de energia com o Wifi (adeus latencia!)
     WiFi.setTxPower(WIFI_POWER_19_5dBm);
-    Serial.println();
-    Serial.print("IP Address: ");
-    Serial.println(WiFi.localIP()); // Printa o IP no serial para saber onde caralhos estou
-    //Serial.println(WiFi.softAPIP());
+
+    #ifndef PROGRAMMING
+        #ifdef EXTRA_ROUTER
+            WiFi.mode(WIFI_STA);    // Inicia o ESP como um STATION (cliente de uma rede)
+            WiFi.begin(ssid, password); // Inicia o WIFI com as credenciais de rede
+            if (WiFi.waitForConnectResult() != WL_CONNECTED) {
+                Serial.println("WiFi Failed!");
+            return;
+            }
+            // Se a conexão com o roteador falhar, desista!
+            Serial.println();
+            Serial.print("IP Address: ");
+            Serial.println(WiFi.localIP()); // Printa o IP no serial para saber onde caralhos estou
+        #else
+            WiFi.mode(WIFI_AP);       // Inicia o ESP como um ACCESS POINT (ponto de acesso)
+            WiFi.softAP(ssid, password); // Inicia o WIFI com as credenciais de rede
+            Serial.println(WiFi.softAPIP());
+        #endif 
+        
+    #else
+        WiFi.mode(WIFI_STA);    // Inicia o ESP como um STATION (cliente de uma rede)
+        WiFi.begin(ssid, password); // Inicia o WIFI com as credenciais de rede
+        if (WiFi.waitForConnectResult() != WL_CONNECTED) {
+            Serial.println("WiFi Failed!");
+        return;
+        }
+        // Se a conexão com o roteador falhar, desista!
+        Serial.println();
+        Serial.print("IP Address: ");
+        Serial.println(WiFi.localIP()); // Printa o IP no serial para saber onde caralhos estou
+    #endif  
+    #ifdef EXTRA_ROUTER
+
+    #endif 
 
     ws.onEvent(onEvent);    // Define qual função deve rodar em um evento do WS
     server.addHandler(&ws); // Define qual é o handler de WS do servidor
@@ -244,28 +268,28 @@ void loop() {
         car.battery_voltage = (analogRead(BATTERY_PIN)/73.5f) * FLOAT_MULTIPLIER; // Atualiza o valor da bateria
         size_t len = serializeJson(carData(), data); // Usa o buffer para escrever o JSON
         ws.textAll(data, len);  // Envia esse buffer no WS para todos os clientes
-        Serial.print("F: ");
-        Serial.print(car.ultrassound_reading_front);
-        Serial.print(" FL: ");
-        Serial.print(car.ultrassound_reading_front_left);
-        Serial.print(" FR: ");
-        Serial.print(car.ultrassound_reading_front_right);
-        Serial.print(" L: ");
-        Serial.print(car.ultrassound_reading_left);
-        Serial.print(" R: ");
-        Serial.print(car.ultrassound_reading_right);
-        Serial.print(" BL: ");
-        Serial.print(car.ultrassound_reading_back_left);
-        Serial.print(" BR: ");
-        Serial.print(car.ultrassound_reading_back_right);
-        Serial.print(" B: ");
-        Serial.println(car.ultrassound_reading_back);
+        //Serial.print("F: ");
+        //Serial.print(car.ultrassound_reading_front);
+        //Serial.print(" FL: ");
+        //Serial.print(car.ultrassound_reading_front_left);
+        //Serial.print(" FR: ");
+        //Serial.print(car.ultrassound_reading_front_right);
+        //Serial.print(" L: ");
+        //Serial.print(car.ultrassound_reading_left);
+        //Serial.print(" R: ");
+        //Serial.print(car.ultrassound_reading_right);
+        //Serial.print(" BL: ");
+        //Serial.print(car.ultrassound_reading_back_left);
+        //Serial.print(" BR: ");
+        //Serial.print(car.ultrassound_reading_back_right);
+        //Serial.print(" B: ");
+        //Serial.println(car.ultrassound_reading_back);
            
     }
 
     if(mapDataTimer.CheckTime()){
         char data[2500]; // Cria um buffer de caracteres
-        size_t len = serializeJson(nav.getChunkData(chunkCounter, car), data); // Escreve o JSON
+        size_t len = serializeJson(nav.getChunkData(chunkCounter), data); // Escreve o JSON
         ws.textAll(data, len);  // Manda os dados de mapa      
         chunkCounter = ++chunkCounter % CHUNK_PARTS;    // Soma 1 pro chunkCounter, e reseta se passar de chunk_parts
     }

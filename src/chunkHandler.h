@@ -29,7 +29,7 @@ uint32_t coordinateToIndex(int16_t x, int16_t y){
     int16_t y_p = y / NAVIGATION_UNIT_PRECISION;
 
     // Calcula quantas unidades de navegação há em 1 linha do espaço navegável
-    uint32_t side = NAVIGATION_CHUNK_LENGTH * NAVIGATION_SIDE_CHUNKS;
+    uint32_t side = NAVIGATION_CHUNK_LENGTH;
     
     // Calcula o endereço do centro, que é referencia em ambos os espaços
     uint32_t center_index = side*side/2;

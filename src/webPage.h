@@ -55,7 +55,7 @@ div {
             <p id="indicator_latency" style="width: 10%; text-align: right;">100 ms</p>
             <p id="indicator_battery_percentage" style="width: 10%; text-align: right; margin-right: 10px;">100%</p>
         </div>
-        <canvas id="indicator_map" width="820px"; height="480px" style="width: auto; height: auto; background-color: #757575; margin: 10px;"></canvas>
+        <canvas id="indicator_map" width="400px"; height="400px" style="width: auto; height: auto; background-color: #757575; margin: 10px;"></canvas>
     </div>
     <div>
 
@@ -159,7 +159,7 @@ div {
                 </div>
                 <div style="display: flex">
                     <p class="navigation_variable">-</p>
-                    <button class="navigation_variable" style="width: 80%">Send Waypoint</button>
+                    <button id="input_walk_button" class="navigation_variable" style="width: 80%">Walk</button>
                 </div>
                 <!-- Permite ver todos os waypoints ativos-->
                 <details>
@@ -210,7 +210,9 @@ div {
     var lastReading = millis;
     var latency_low = true;
     var problem_flag = false;
-    var mapData = new Array(10000);
+    var mapData = new Array(100).fill(0).map(() => new Array(100).fill(0));
+    var posX = 0;
+    var posY = 0;
 	// Init web socket when the page loads
 	window.addEventListener('load', onload);
 
@@ -225,6 +227,10 @@ div {
         }
         problem_flag = false;
         latency_low = false;
+    }, 1000);
+
+    setInterval(function(){
+        updateCanvas();
     }, 1000);
 
 	function onload(event) {
@@ -272,12 +278,17 @@ div {
                 problem_flag = true;
             }
             lastReading = millis;
+            posX = data.navigation.position.x/10;
+            posY = data.navigation.position.y/10;
             updateIndicators(data);
         } else if(data.type == "chunkData"){
             fillMapData(data);
-            updateCanvas(data);
         }		
 	}
+
+    document.getElementById("input_walk_button").addEventListener("click", e =>{
+		websocket.send(JSON.stringify({"toChange" : "walk", "changeTo" : 1}));
+	});
 
     document.getElementById("input_motor_left_sendpower").addEventListener("click", e =>{
 		websocket.send(JSON.stringify({"toChange" : "leftSetpoint", "changeTo" : document.getElementById("input_motor_left_setpoint").value}));
@@ -381,8 +392,8 @@ div {
 	}
 
     function fillMapData(data){
-        for(var i = 0; i < data.chunkData.length; i++){
-            mapData[(data.index / data.size) * data.chunkData.length + i] = data.chunkData[i];
+        for(var i = 0; i < data.size * data.size / data.total_parts; i++){
+            mapData[Math.floor((data.part * data.size) / data.total_parts) + Math.floor(i / data.size)][i % data.size] = data.chunkData[i];
         }
     }
 
@@ -393,35 +404,24 @@ div {
         
         var width = canvas.width;
         var height = canvas.height;
-        var squareSize = 2;    // tamanho de cada "pixel" posicional
+        var squareSize = 4;    // tamanho de cada "pixel" posicional
 
-        c.fillStyle = "red";
-        c.fillRect(data.position.x * squareSize, data.position.y * squareSize, squareSize, squareSize);
-
-        for(var i = 0; i < mapData.length; i++){
-            var coordinates = indexToCoordinates(i, 10000);
-            var x = coordinates[0];
-            var y = coordinates[1];
-            if(mapData[i] > 0){
-                c.fillStyle = "white";
-                c.fillRect(x * squareSize, y * squareSize, squareSize, squareSize);
+        for(var i = 0; i < 100; i++){
+            for(var j = 0; j < 100; j++){
+                if(mapData[j][i] > 0){
+                    c.fillStyle = "white";
+                    c.fillRect((j-50) * squareSize + canvas.width/2, (50-i) * squareSize + canvas.height/2, squareSize, squareSize);
+                }
+        
             }
         }
-    }
-
-    // ---------------------------------------------------------------------
-	// Função de suporte para o canvas
-	// ---------------------------------------------------------------------
-
-    function indexToCoordinates(index, length){
-        var sides = Math.sqrt(length);
-        var x = index % sides;
-        var y = index / sides;
-        return [x, y];
+        c.fillStyle = "red";
+        c.fillRect((posX * squareSize) + (canvas.width/2), (-posY * squareSize) + (canvas.height/2), squareSize, squareSize);
     }
 	
 </script>
 </html>
+
 
 
 

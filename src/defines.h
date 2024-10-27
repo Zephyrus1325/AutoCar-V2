@@ -1,5 +1,8 @@
 #pragma once
 
+#define PROGRAMMING
+//#define EXTRA_ROUTER
+
 #define BATTERY_MAX_VOLTAGE 11.1f
 #define BATTERY_ALERT_VOLTAGE 10.5f
 #define BATTERY_PROGRAMMING_VOLTAGE 3.0f

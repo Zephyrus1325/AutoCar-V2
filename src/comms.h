@@ -82,6 +82,8 @@ struct Command {
     int32_t value;
 };
 
+unsigned long packetResetTimer = 0;   // Timer para correção de problemas com desincronização de Seriais
+unsigned long packetResetTime = 1000; // Tempo até a correção ser ativada
 
 // Envia os dados a cada tempo, definido pelo sendTimer
 void sendCommand(int32_t command, int32_t value){
@@ -101,17 +103,35 @@ void receiveData(CarData* data){
     // Ler a variavel caso tenha sido enviada algum dado no serial
     // E escrever esses dados no Struct CarData
     byte packetStatus = StreamSend::receiveObject(Serial2, data, sizeof(*data));
-    
+    if(packetStatus == GOOD_PACKET){
+        packetResetTimer = millis();
+    } else if(packetStatus == PACKET_NOT_FOUND){
+        if(millis() - packetResetTimer > packetResetTime){
+            // Clear Receive Buffer
+            while(Serial2.available() > 0) {
+              char t = Serial2.read();
+            }
+            #ifdef DEBUG
+            Serial.println("Serial2 Buffer Cleaned");
+            #endif
+            packetResetTimer = millis();
+        }
+    }
     // Debugging info
     #ifdef DEBUG
     if(packetStatus == GOOD_PACKET){
         Serial.print("Received Healty Packet: ");
         Serial.println(sizeof(*data));
+        
     } else if(packetStatus == BAD_PACKET){
         Serial.print("Bad Packet: ");
         Serial.print(sizeof(*data));
         Serial.print(" Struct Size: ");
         Serial.println(sizeof(CarData));
-    }
+    } 
     #endif
 }
+
+#ifdef DEBUG
+#undef DEBUG
+#endif

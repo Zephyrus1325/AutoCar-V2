@@ -33,6 +33,12 @@ div {
     width: 20%;
 }
 
+.ultrassound_variable {
+    margin: 3px;
+    text-align: center;
+    width: 20%;
+}
+
 .navigation_details{
     margin: 3px;
     text-align: left;
@@ -186,6 +192,28 @@ div {
                         <p class="navigation_details" style="width: 49%">Distance: 10000 cm</p>
                     </div>
                 </details>
+            </div>
+            <!-- Leituras de Ultrassom-->
+            <p style="width: auto; padding: 3px; margin: 5px; border: solid gray 1px; text-align: center">Ultrassound</p>
+            <div>
+                <div style="display: flex">
+                    <p class="ultrassound_variable"  style="width: 20%">Front</p>
+                    <p id="indicator_ultrassound_front_left" class="ultrassound_variable">99</p>
+                    <p id="indicator_ultrassound_front" class="ultrassound_variable">99</p>
+                    <p id="indicator_ultrassound_front_right" class="ultrassound_variable">99</p>
+                </div>
+                <div style="display: flex">
+                    <p class="ultrassound_variable"  style="width: 20%">Sides</p>
+                    <p id="indicator_ultrassound_left" class="ultrassound_variable">99</p>
+                    <p class="ultrassound_variable"></p>
+                    <p id="indicator_ultrassound_right" class="ultrassound_variable">99</p>
+                </div>
+                <div style="display: flex">
+                    <p class="ultrassound_variable"  style="width: 20%">Back</p>
+                    <p id="indicator_ultrassound_back_left" class="ultrassound_variable">99</p>
+                    <p id="indicator_ultrassound_back" class="ultrassound_variable">99</p>
+                    <p id="indicator_ultrassound_back_right" class="ultrassound_variable">99</p>
+                </div>
             </div>
         </div>
     </div>
@@ -354,14 +382,14 @@ div {
         document.getElementById("indicator_motor_right_kd").innerText = "Kd: " + data.motor.right.kd.toFixed(2);
         document.getElementById("input_motor_right_enablePID").style.backgroundColor = data.motor.right.mode == 0 ? "#00FF00" : "#101010";
         document.getElementById("input_motor_right_disablePID").style.backgroundColor = data.motor.right.mode == 0 ? "#101010" : "#00FF00";
-        //document.getElementById("indicator_ultrassound_front").innerText = "Front: " + data.ultrassound.front + " cm";
-        //document.getElementById("indicator_ultrassound_front_left").innerText = "Front Left: " +  data.ultrassound.front_left + " cm";
-        //document.getElementById("indicator_ultrassound_front_right").innerText = "Front Right: " + data.ultrassound.front_right + " cm";
-        //document.getElementById("indicator_ultrassound_left").innerText = "Left: " + data.ultrassound.left + " cm";
-        //document.getElementById("indicator_ultrassound_right").innerText = "Right: " + data.ultrassound.right + " cm";
-        //document.getElementById("indicator_ultrassound_back").innerText = "Back: " + data.ultrassound.back + " cm";
-        //document.getElementById("indicator_ultrassound_back_left").innerText = "Back Left: " + data.ultrassound.back_left + " cm";
-        //document.getElementById("indicator_ultrassound_back_right").innerText = "Back Right: " + data.ultrassound.back_right + " cm";
+        document.getElementById("indicator_ultrassound_front").innerText = data.ultrassound.front;
+        document.getElementById("indicator_ultrassound_front_left").innerText = data.ultrassound.front_left;
+        document.getElementById("indicator_ultrassound_front_right").innerText = data.ultrassound.front_right;
+        document.getElementById("indicator_ultrassound_left").innerText = data.ultrassound.left;
+        document.getElementById("indicator_ultrassound_right").innerText = data.ultrassound.right;
+        document.getElementById("indicator_ultrassound_back").innerText = data.ultrassound.back;
+        document.getElementById("indicator_ultrassound_back_left").innerText = data.ultrassound.back_left;
+        document.getElementById("indicator_ultrassound_back_right").innerText = data.ultrassound.back_right;
         document.getElementById("input_navigation_setmode_auto").style.backgroundColor = data.navigation.mode == 0 ? "#00FF00" : "#101010";
         document.getElementById("input_navigation_setmode_manual").style.backgroundColor = data.navigation.mode == 0 ? "#101010" : "#00FF00";
         //document.getElementById("indicator_imu_accelx").innerText = "AccelX: " + data.imu.acc.treated.x.toFixed(1) + " m/s2";
@@ -372,8 +400,8 @@ div {
         //document.getElementById("indicator_imu_gyroz").innerText = "GyroZ: " + data.imu.gyro.treated.z.toFixed(1) + " deg/s";
         //document.getElementById("indicator_imu_temperature").innerText = "Temperature: " + data.imu.baro.treated.temperature.toFixed(1) + " C";
         //document.getElementById("indicator_imu_pressure").innerText = "Pressure: " + data.imu.baro.treated.pressure.toFixed(0) + " Pa";
-        document.getElementById("indicator_imu_pitch").innerText = "Pitch: " + data.navigation.position.pitch.toFixed(1) + " deg";
-        document.getElementById("indicator_imu_roll").innerText = "Roll: " +  data.navigation.position.roll.toFixed(1) + " deg";
+        document.getElementById("indicator_imu_pitch").innerText = data.navigation.position.pitch.toFixed(1);
+        document.getElementById("indicator_imu_roll").innerText = data.navigation.position.roll.toFixed(1);
         document.getElementById("indicator_imu_heading").innerText = "Head: " + data.navigation.position.heading.toFixed(0) + " deg";
 		document.getElementById("indicator_navigation_position_x").innerText = "X = " + data.navigation.position.x.toFixed(0);
         document.getElementById("indicator_navigation_position_y").innerText = "Y = " + data.navigation.position.y.toFixed(0);

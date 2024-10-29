@@ -1,7 +1,7 @@
 #pragma once
 
-#define PROGRAMMING
-//#define EXTRA_ROUTER
+//#define PROGRAMMING
+#define EXTRA_ROUTER
 
 #define BATTERY_MAX_VOLTAGE 11.1f
 #define BATTERY_ALERT_VOLTAGE 10.5f
@@ -41,4 +41,4 @@
 #define NAVIGATION_CHUNK_LENGTH 100    // Tamanho da lateral de um chunk, em unidades de navegação
 #define NAVIGATION_SIDE_CHUNKS 1      // Total de chunks em 1 lado da região mapeavel
 
-#define CHUNK_PARTS 20  // Define em quantas partes um chunk vai ser dividido para ser enviado
+#define CHUNK_PARTS 10  // Define em quantas partes um chunk vai ser dividido para ser enviado

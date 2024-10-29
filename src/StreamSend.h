@@ -125,6 +125,7 @@ byte StreamSend::receiveObject(Stream &ostream, void* ptr, unsigned int objSize,
     }
       return GOOD_PACKET;
   }
+  
   return PACKET_NOT_FOUND; //Prefix character wasn't found so no packet detected
 }
 
